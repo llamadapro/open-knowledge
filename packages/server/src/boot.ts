@@ -67,6 +67,7 @@ import { mountMcpAndApi, type ReadinessState } from './mcp-mount.ts';
 import { MissingOkConfigError } from './missing-ok-config-error.ts';
 import { createProjectRuntime, type ProjectRuntime } from './project-runtime.ts';
 import { RemoteConfigError, resolveRemoteAccess } from './remote-access.ts';
+import { resolveAuth0AuthorizationFromEnvironment } from './security/auth0-environment.ts';
 import { createServer, type ServerInstance, type ServerOptions } from './server-factory.ts';
 import { installServerMemoryGauge, installServerRuntimeGauges } from './server-memory-telemetry.ts';
 import {
@@ -556,6 +557,11 @@ async function bootServerInner(opts: BootServerOptions): Promise<BootedServer> {
   const skipAutoInit = opts.skipAutoInit ?? false;
   const attachUi = opts.attachUiSibling ?? true;
   const log = opts.log ?? getLogger('boot');
+  const authorization =
+    opts.authorization ??
+    resolveAuth0AuthorizationFromEnvironment(process.env, {
+      audit: (event) => log.info(event, event.event),
+    });
 
   // Remote access (the `remote:` config block) — armed only on the explicit
   // `enableRemote` opt-in, never from config alone. Throws RemoteConfigError
@@ -725,7 +731,7 @@ async function bootServerInner(opts: BootServerOptions): Promise<BootedServer> {
     embeddingsKeyStore: opts.embeddingsKeyStore,
     singleDocRelPath: opts.singleDocRelPath,
     ephemeral: opts.ephemeral,
-    authorization: opts.authorization,
+    authorization,
   });
 
   const {
@@ -758,7 +764,7 @@ async function bootServerInner(opts: BootServerOptions): Promise<BootedServer> {
         config: opts.config,
         getServerUrl: () => `http://${mcpHost}:${boundPort}`,
         log,
-        authorization: opts.authorization,
+        authorization,
       });
 
   // HTTP server — `mountMcpAndApi` installs the `/mcp` + `/api/*` request

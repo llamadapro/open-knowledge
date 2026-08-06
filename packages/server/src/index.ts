@@ -414,6 +414,17 @@ export {
 } from './remote-access.ts';
 export { resolvePackageVersion } from './resolve-package-version.ts';
 export {
+  type Auth0AuthenticatorOptions,
+  type Auth0MachinePrincipal,
+  createAuth0PrincipalAuthenticator,
+} from './security/auth0-authenticator.ts';
+export {
+  Auth0ConfigurationError,
+  type Auth0Environment,
+  type Auth0EnvironmentResolutionOptions,
+  resolveAuth0AuthorizationFromEnvironment,
+} from './security/auth0-environment.ts';
+export {
   type AuthenticationContext,
   AuthenticationRequiredError,
   AuthenticationUnavailableError,
