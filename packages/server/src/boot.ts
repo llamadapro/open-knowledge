@@ -68,6 +68,8 @@ import { MissingOkConfigError } from './missing-ok-config-error.ts';
 import { createProjectRuntime, type ProjectRuntime } from './project-runtime.ts';
 import { RemoteConfigError, resolveRemoteAccess } from './remote-access.ts';
 import { resolveAuth0AuthorizationFromEnvironment } from './security/auth0-environment.ts';
+import type { SecurityAuditSink } from './security/authorization.ts';
+import { resolveKnowledgeRuntimeScope } from './security/runtime-scope.ts';
 import { createServer, type ServerInstance, type ServerOptions } from './server-factory.ts';
 import { installServerMemoryGauge, installServerRuntimeGauges } from './server-memory-telemetry.ts';
 import {
@@ -229,6 +231,7 @@ export interface BootServerOptions
     | 'singleDocRelPath'
     | 'ephemeral'
     | 'authorization'
+    | 'runtimeScope'
   > {
   /**
    * The project's loaded `Config` (parsed from `.ok/config.yml`,
@@ -569,6 +572,12 @@ async function bootServerInner(opts: BootServerOptions): Promise<BootedServer> {
         audit: (event) => log.info(event, event.event),
       },
     );
+  const runtimeScope = resolveKnowledgeRuntimeScope({
+    authorizationConfigured: authorization !== undefined,
+    explicitScope: opts.runtimeScope,
+    publishedBranch: process.env.OK_PUBLISHED_BRANCH,
+  });
+  const workspaceAudit = (event: Parameters<SecurityAuditSink>[0]) => log.info(event, event.event);
 
   // Remote access (the `remote:` config block) — armed only on the explicit
   // `enableRemote` opt-in, never from config alone. Throws RemoteConfigError
@@ -739,6 +748,8 @@ async function bootServerInner(opts: BootServerOptions): Promise<BootedServer> {
     singleDocRelPath: opts.singleDocRelPath,
     ephemeral: opts.ephemeral,
     authorization,
+    runtimeScope,
+    workspaceAudit,
   });
 
   const {
@@ -772,6 +783,8 @@ async function bootServerInner(opts: BootServerOptions): Promise<BootedServer> {
         getServerUrl: () => `http://${mcpHost}:${boundPort}`,
         log,
         authorization,
+        runtimeScope,
+        workspaceAudit,
       });
 
   // HTTP server — `mountMcpAndApi` installs the `/mcp` + `/api/*` request

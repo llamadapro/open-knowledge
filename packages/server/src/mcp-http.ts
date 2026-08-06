@@ -1,6 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { displayNameFromClientName, type SecurityPrincipal } from '@inkeep/open-knowledge-core';
+import {
+  displayNameFromClientName,
+  type KnowledgeRuntimeScope,
+  type SecurityPrincipal,
+} from '@inkeep/open-knowledge-core';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { validateAgentId } from './agent-id.ts';
@@ -20,8 +24,11 @@ import {
   AuthenticationUnavailableError,
   AuthorizationDeniedError,
   type AuthorizationService,
+  type SecurityAuditSink,
 } from './security/authorization.ts';
 import { requiredCapabilityForMcpTool } from './security/mcp-tool-policy.ts';
+import { defaultSharedKnowledgeRuntimeScope } from './security/runtime-scope.ts';
+import { requireKnowledgeMutationScope } from './security/workspace-authorization.ts';
 import { RUNTIME_VERSION } from './version-constants.ts';
 
 interface McpHttpSession {
@@ -52,6 +59,10 @@ export interface McpHttpHandlerOptions {
   maxSessions?: number;
   /** Omitted for local single-user mode; configured shared servers fail closed. */
   authorization?: AuthorizationService;
+  /** Shared runtime filesystem scope; omitted only in local single-user mode. */
+  runtimeScope?: KnowledgeRuntimeScope;
+  /** Audit sink for workspace-scope denials. */
+  workspaceAudit?: SecurityAuditSink;
 }
 
 export interface McpHttpHandler {
@@ -78,6 +89,9 @@ function createSessionServer(
   securityPrincipalRef: { current: SecurityPrincipal } | undefined,
 ): McpHttpSession {
   const config = opts.config;
+  const runtimeScope = opts.authorization
+    ? defaultSharedKnowledgeRuntimeScope(opts.runtimeScope)
+    : opts.runtimeScope;
   // No `instructions` handshake — see startGlobalMcpServer. The
   // project skill is the single steering channel; the HTTP server only ever
   // runs inside an OK project, where that skill is installed.
@@ -146,11 +160,19 @@ function createSessionServer(
     authorizeToolCall:
       opts.authorization && securityPrincipalRef
         ? async (tool, args) => {
-            await opts.authorization?.requireCapability(
-              securityPrincipalRef.current,
-              requiredCapabilityForMcpTool(tool, args),
-              { transport: 'mcp', resource: `tool:${tool}` },
-            );
+            const capability = requiredCapabilityForMcpTool(tool, args);
+            await opts.authorization?.requireCapability(securityPrincipalRef.current, capability, {
+              transport: 'mcp',
+              resource: `tool:${tool}`,
+            });
+            if (capability === 'knowledge.propose') {
+              await requireKnowledgeMutationScope(
+                securityPrincipalRef.current,
+                runtimeScope,
+                { transport: 'mcp', resource: `tool:${tool}` },
+                { audit: opts.workspaceAudit },
+              );
+            }
           }
         : undefined,
   });

@@ -17,6 +17,8 @@ export type SecurityPrincipalKind = z.infer<typeof SecurityPrincipalKindSchema>;
 
 const SECURITY_PRINCIPAL_ID = /^(human|agent|service):[^\s:]+(?::[^\s:]+)*$/;
 
+export const SecurityPrincipalIdSchema = z.string().min(1).max(512).regex(SECURITY_PRINCIPAL_ID);
+
 /**
  * Authenticated identity propagated through shared-server transports.
  *
@@ -27,7 +29,7 @@ const SECURITY_PRINCIPAL_ID = /^(human|agent|service):[^\s:]+(?::[^\s:]+)*$/;
  */
 export const SecurityPrincipalSchema = z
   .object({
-    id: z.string().min(1).max(512).regex(SECURITY_PRINCIPAL_ID),
+    id: SecurityPrincipalIdSchema,
     kind: SecurityPrincipalKindSchema,
     issuer: z.string().min(1).max(2048),
     subject: z.string().min(1).max(512),

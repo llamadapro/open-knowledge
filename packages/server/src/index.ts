@@ -397,6 +397,16 @@ export {
   untrackTrackedProjectSkillProjection,
 } from './project-skill-git.ts';
 export {
+  createProposalWorkspaceService,
+  type ProposalWorkspace,
+  ProposalWorkspaceError,
+  type ProposalWorkspaceGit,
+  type ProposalWorkspaceRecord,
+  ProposalWorkspaceRecordSchema,
+  type ProposalWorkspaceService,
+  type ProposalWorkspaceServiceOptions,
+} from './proposals/proposal-workspace.ts';
+export {
   type BlockConflict,
   CONFLICT_MARKER_RE,
   containsConflictMarkers,

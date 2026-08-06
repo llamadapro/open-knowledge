@@ -105,6 +105,7 @@ import {
   isOpenKnowledgeSkillsSource,
   isSkillInstallTarget,
   isSkillOutsideOpenProject,
+  type KnowledgeRuntimeScope,
   LEGACY_SKILL_STORE_ROOT,
   LINKABLE_ASSET_EXTENSIONS,
   type LifecycleStatus,
@@ -666,7 +667,7 @@ import {
   type RenameLogEntry,
   resolveDocPathAtCommit,
 } from './rename-log.ts';
-import type { AuthorizationService } from './security/authorization.ts';
+import type { AuthorizationService, SecurityAuditSink } from './security/authorization.ts';
 import {
   applySeed,
   coercePackId,
@@ -2380,6 +2381,10 @@ export interface ApiExtensionOptions {
   remotePublicHost?: string;
   /** Shared-server authorization; local single-user mode leaves this undefined. */
   authorization?: AuthorizationService;
+  /** Shared runtime filesystem scope; omitted only in local single-user mode. */
+  runtimeScope?: KnowledgeRuntimeScope;
+  /** Audit sink for workspace-scope denials. */
+  workspaceAudit?: SecurityAuditSink;
   hocuspocus: Hocuspocus;
   durabilityState: DocumentDurabilityState;
   sessionManager: AgentSessionManager;
@@ -22279,6 +22284,8 @@ export function createApiExtension(
     ephemeral,
     table: apiRouteTable,
     authorization: options.authorization,
+    runtimeScope: options.runtimeScope,
+    workspaceAudit: options.workspaceAudit,
   });
 
   // The natively-routed route groups. Their paths live in the Hono app only —
@@ -22321,6 +22328,8 @@ export function createApiExtension(
       ephemeral,
       table: group.table,
       authorization: options.authorization,
+      runtimeScope: options.runtimeScope,
+      workspaceAudit: options.workspaceAudit,
     }),
   );
   const nativeApi: NativeApiHandle = {

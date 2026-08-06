@@ -40,7 +40,10 @@ interface SessionHarness {
 async function bootHandler(
   config: Config,
   handlerOptions: Partial<
-    Pick<McpHttpHandlerOptions, 'authorization' | 'log' | 'maxSessions' | 'sessionTtlMs'>
+    Pick<
+      McpHttpHandlerOptions,
+      'authorization' | 'log' | 'maxSessions' | 'runtimeScope' | 'sessionTtlMs' | 'workspaceAudit'
+    >
   > = {},
 ): Promise<SessionHarness> {
   const contentDir = mkdtempSync(join(tmpdir(), 'ok-mcp-http-cfg-'));
@@ -173,6 +176,15 @@ function testAuthorization() {
           capabilities: ['knowledge.read'],
         };
       }
+      if (token === 'contributor-token') {
+        return {
+          id: 'agent:contributor:test',
+          kind: 'agent',
+          issuer: 'test',
+          subject: 'contributor',
+          capabilities: ['knowledge.read', 'knowledge.propose'],
+        };
+      }
       return null;
     },
   });
@@ -301,6 +313,42 @@ test('shared MCP mode authorizes each tool against the session principal', async
   expect(write.status).toBe(200);
   expect(writeBody.result?.isError).toBe(true);
   expect(writeBody.result?.content?.[0]?.text).toContain('Insufficient capability');
+});
+
+test('published MCP mode rejects contributor writes before invoking the tool', async () => {
+  const config: Config = ConfigSchema.parse({});
+  const harness = await bootHandler(config, {
+    authorization: testAuthorization(),
+  });
+  openHarnesses.push(harness);
+  const authHeaders = { authorization: 'Bearer contributor-token' };
+  const session = await openMcpSession(harness.port, authHeaders);
+
+  const response = await fetch(`http://127.0.0.1:${harness.port}/mcp`, {
+    method: 'POST',
+    headers: {
+      accept: 'application/json, text/event-stream',
+      'content-type': 'application/json',
+      'mcp-session-id': session.sessionId,
+      'mcp-protocol-version': session.protocolVersion,
+      ...authHeaders,
+    },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 12,
+      method: 'tools/call',
+      params: {
+        name: 'write',
+        arguments: { document: { path: 'denied', content: 'not written' } },
+      },
+    }),
+  });
+  const body = (await response.json()) as {
+    result?: { isError?: boolean; content?: Array<{ text?: string }> };
+  };
+  expect(response.status).toBe(200);
+  expect(body.result?.isError).toBe(true);
+  expect(body.result?.content?.[0]?.text).toContain('Published knowledge is read-only');
 });
 
 test('an MCP session cannot be resumed by a different authenticated principal', async () => {

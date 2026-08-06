@@ -35,7 +35,7 @@
  */
 
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { CLIENT_VERSION_HEADER } from '@inkeep/open-knowledge-core';
+import { CLIENT_VERSION_HEADER, type KnowledgeRuntimeScope } from '@inkeep/open-knowledge-core';
 import { context, propagation, SpanKind, SpanStatusCode } from '@opentelemetry/api';
 import {
   ATTR_HTTP_REQUEST_METHOD,
@@ -58,7 +58,10 @@ import {
   AuthenticationUnavailableError,
   AuthorizationDeniedError,
   type AuthorizationService,
+  type SecurityAuditSink,
 } from '../security/authorization.ts';
+import { defaultSharedKnowledgeRuntimeScope } from '../security/runtime-scope.ts';
+import { requireKnowledgeMutationScope } from '../security/workspace-authorization.ts';
 import { getMeter, getTracer, onTelemetryShutdown } from '../telemetry.ts';
 import { errorResponse } from './error-response.ts';
 import { REQUEST_ID_HEADER, rememberRequestId, resolveRequestId } from './request-id.ts';
@@ -107,6 +110,10 @@ export interface ApiPipelineOptions {
   table: ApiRouteTable;
   /** Omitted for local single-user mode; configured shared servers fail closed. */
   authorization?: AuthorizationService;
+  /** Shared runtime filesystem scope; omitted only in local single-user mode. */
+  runtimeScope?: KnowledgeRuntimeScope;
+  /** Audit sink for workspace-scope denials. */
+  workspaceAudit?: SecurityAuditSink;
 }
 
 /**
@@ -138,7 +145,11 @@ function httpDurationHist(): ReturnType<ReturnType<typeof getMeter>['createHisto
 }
 
 export function createApiRequestPipeline(opts: ApiPipelineOptions): ApiRequestPipeline {
-  const { log, remotePublicHost, ephemeral, table, authorization } = opts;
+  const { log, remotePublicHost, ephemeral, table, authorization, runtimeScope, workspaceAudit } =
+    opts;
+  const effectiveRuntimeScope = authorization
+    ? defaultSharedKnowledgeRuntimeScope(runtimeScope)
+    : runtimeScope;
   // In remote mode the tunnel's public Host is as legitimate as a loopback
   // name — the mount's admit gate already vetted it. Same widening the
   // api-extension applies to its route-level Host gates.
@@ -299,6 +310,11 @@ export function createApiRequestPipeline(opts: ApiPipelineOptions): ApiRequestPi
           authContext,
         );
         await authorization.requireCapability(principal, capability, authContext);
+        if (capability === 'knowledge.propose') {
+          await requireKnowledgeMutationScope(principal, effectiveRuntimeScope, authContext, {
+            audit: workspaceAudit,
+          });
+        }
         rememberSecurityPrincipal(request, principal);
       } catch (error) {
         if (error instanceof AuthenticationRequiredError) {

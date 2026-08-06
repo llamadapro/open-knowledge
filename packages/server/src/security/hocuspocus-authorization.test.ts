@@ -1,5 +1,6 @@
+import type { KnowledgeRuntimeScope } from '@inkeep/open-knowledge-core';
 import { createCollaborationCredential, type SecurityPrincipal } from '@inkeep/open-knowledge-core';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { AuthenticationRequiredError, createAuthorizationService } from './authorization.ts';
 import {
   createHocuspocusAuthorizationExtension,
@@ -20,7 +21,7 @@ const contributor: SecurityPrincipal = {
   capabilities: ['knowledge.read', 'knowledge.propose'],
 };
 
-function extension() {
+function extension(runtimeScope?: KnowledgeRuntimeScope, workspaceAudit = vi.fn()) {
   return createHocuspocusAuthorizationExtension(
     createAuthorizationService({
       authenticate: async ({ token }) => {
@@ -29,6 +30,7 @@ function extension() {
         return null;
       },
     }),
+    { runtimeScope, workspaceAudit },
   );
 }
 
@@ -64,6 +66,39 @@ describe('Hocuspocus authorization extension', () => {
     expect(context.securityPrincipal).toEqual(contributor);
     expect((payload as { connectionConfig: { readOnly: boolean } }).connectionConfig.readOnly).toBe(
       true,
+    );
+  });
+
+  test('makes contributors read-only on published and foreign proposal runtimes', async () => {
+    for (const runtimeScope of [
+      { kind: 'published' as const, branch: 'main' },
+      {
+        kind: 'proposal' as const,
+        proposalId: 'proposal-1',
+        principalId: 'human:someone-else',
+        branch: 'ok/proposals/other/proposal-1',
+      },
+    ]) {
+      const ext = extension(runtimeScope);
+      const payload = authPayload('contributor', {});
+      await ext.onAuthenticate?.(payload);
+      expect(
+        (payload as { connectionConfig: { readOnly: boolean } }).connectionConfig.readOnly,
+      ).toBe(true);
+    }
+  });
+
+  test('keeps the proposal owner writable', async () => {
+    const ext = extension({
+      kind: 'proposal',
+      proposalId: 'proposal-1',
+      principalId: contributor.id,
+      branch: 'ok/proposals/owner/proposal-1',
+    });
+    const payload = authPayload('contributor', {});
+    await ext.onAuthenticate?.(payload);
+    expect((payload as { connectionConfig: { readOnly: boolean } }).connectionConfig.readOnly).toBe(
+      false,
     );
   });
 
@@ -103,7 +138,12 @@ describe('Hocuspocus authorization extension', () => {
   });
 
   test('requires proposal capability for client-originated mutations', async () => {
-    const ext = extension();
+    const ext = extension({
+      kind: 'proposal',
+      proposalId: 'proposal-1',
+      principalId: contributor.id,
+      branch: 'ok/proposals/owner/proposal-1',
+    });
     await expect(
       ext.onChange?.({
         context: { securityPrincipal: reader },
@@ -119,6 +159,21 @@ describe('Hocuspocus authorization extension', () => {
         connection: {},
       } as never),
     ).resolves.toBeUndefined();
+  });
+
+  test('rejects published client mutations at the workspace boundary', async () => {
+    const workspaceAudit = vi.fn();
+    const ext = extension(undefined, workspaceAudit);
+    await expect(
+      ext.onChange?.({
+        context: { securityPrincipal: contributor },
+        documentName: 'company/index',
+        connection: {},
+      } as never),
+    ).rejects.toMatchObject({ reason: 'published-workspace-read-only' });
+    expect(workspaceAudit).toHaveBeenCalledWith(
+      expect.objectContaining({ transport: 'websocket', workspaceKind: 'published' }),
+    );
   });
 
   test('rejects a connected mutation when authentication context is missing', async () => {

@@ -51,6 +51,16 @@ Use `kind: "service"` and an id beginning with `service:` for non-agent automati
 
 All hosted variables absent preserves local single-user mode. Partial configuration stops startup instead of serving a half-protected process.
 
+## Published and proposal runtimes
+
+An authenticated shared server defaults to the read-only published branch. The default branch is `main`; set `OK_PUBLISHED_BRANCH` when the canonical published branch has a different name.
+
+Hosted edits must run in a separate proposal runtime that is bound to one authenticated principal and one proposal branch. A contributor can mutate that runtime only when its principal id matches the proposal owner. HTTP writes, collaboration WebSocket updates, and MCP write tools all enforce the same rule. Omitting the runtime scope from an authenticated server fails closed to the published read-only scope.
+
+The proposal orchestrator that starts those dedicated runtimes, the review UI, and pull-request synchronization are separate deployment layers. Until they are configured, authenticated users can read published knowledge but cannot publish changes through the shared server.
+
+This hosted isolation does not change local desktop or CLI projects. Without shared-server authentication, OpenKnowledge continues to use the selected local checkout directly.
+
 ## Browser configuration
 
 The browser variables are Vite build-time values and must match the server API:
@@ -80,6 +90,7 @@ Before exposing the service, verify:
 
 - an unauthenticated HTTP, WebSocket, and MCP request is rejected;
 - a reader can search and open documents but cannot mutate them;
-- a contributor can edit and use proposal tools;
+- a contributor cannot edit the published runtime;
+- a contributor can edit only an owner-bound proposal runtime;
 - an unknown Machine to Machine client is rejected;
 - authentication and authorization decisions reach the structured security audit log without raw tokens.

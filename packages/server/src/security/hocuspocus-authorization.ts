@@ -1,10 +1,18 @@
 import type { Extension } from '@hocuspocus/server';
 import {
+  decideKnowledgeMutationScope,
   hasKnowledgeCapability,
+  type KnowledgeRuntimeScope,
   parseCollaborationCredential,
   type SecurityPrincipal,
 } from '@inkeep/open-knowledge-core';
-import { AuthenticationRequiredError, type AuthorizationService } from './authorization.ts';
+import {
+  AuthenticationRequiredError,
+  type AuthorizationService,
+  type SecurityAuditSink,
+} from './authorization.ts';
+import { defaultSharedKnowledgeRuntimeScope } from './runtime-scope.ts';
+import { requireKnowledgeMutationScope } from './workspace-authorization.ts';
 
 export interface SecurityWebSocketContext {
   securityPrincipal?: SecurityPrincipal;
@@ -13,9 +21,16 @@ export interface SecurityWebSocketContext {
   [key: string]: unknown;
 }
 
+export interface HocuspocusAuthorizationOptions {
+  runtimeScope?: KnowledgeRuntimeScope;
+  workspaceAudit?: SecurityAuditSink;
+}
+
 export function createHocuspocusAuthorizationExtension(
   authorization: AuthorizationService,
+  options: HocuspocusAuthorizationOptions = {},
 ): Extension<SecurityWebSocketContext> & { __kind: 'security-authorization' } {
+  const runtimeScope = defaultSharedKnowledgeRuntimeScope(options.runtimeScope);
   return {
     __kind: 'security-authorization',
     extensionName: 'security-authorization',
@@ -43,7 +58,10 @@ export function createHocuspocusAuthorizationExtension(
       // Hocuspocus rejects client updates before they mutate the Y.Doc when a
       // connection is read-only. The onChange check below remains a second
       // boundary in case a framework upgrade regresses that enforcement.
-      if (!hasKnowledgeCapability(principal, 'knowledge.propose')) {
+      if (
+        !hasKnowledgeCapability(principal, 'knowledge.propose') ||
+        !decideKnowledgeMutationScope(principal, runtimeScope).allowed
+      ) {
         connectionConfig.readOnly = true;
       }
     },
@@ -58,6 +76,12 @@ export function createHocuspocusAuthorizationExtension(
         transport: 'websocket',
         resource: `document:${documentName}:mutation`,
       });
+      await requireKnowledgeMutationScope(
+        principal,
+        runtimeScope,
+        { transport: 'websocket', resource: `document:${documentName}:mutation` },
+        { audit: options.workspaceAudit },
+      );
     },
   };
 }

@@ -1,5 +1,6 @@
 import { createServer } from 'node:http';
-import { describe, expect, test } from 'vitest';
+import type { KnowledgeRuntimeScope } from '@inkeep/open-knowledge-core';
+import { describe, expect, test, vi } from 'vitest';
 import { parseProblem, rawRequest } from '../composition-rig.test-helper.ts';
 import { listenOnLoopback } from '../loopback-rig-test-helpers.ts';
 import {
@@ -40,7 +41,12 @@ interface NativeRig {
 }
 
 async function bootNativeRig(
-  opts: { authorization?: AuthorizationService; ephemeral?: boolean } = {},
+  opts: {
+    authorization?: AuthorizationService;
+    ephemeral?: boolean;
+    runtimeScope?: KnowledgeRuntimeScope;
+    workspaceAudit?: Parameters<typeof createApiRequestPipeline>[0]['workspaceAudit'];
+  } = {},
 ): Promise<NativeRig> {
   const legacyCalls: string[] = [];
   const principalIds: Array<string | undefined> = [];
@@ -86,6 +92,8 @@ async function bootNativeRig(
       log: fakeLog,
       ephemeral: opts.ephemeral,
       authorization: opts.authorization,
+      runtimeScope: opts.runtimeScope,
+      workspaceAudit: opts.workspaceAudit,
       table,
     }),
   };
@@ -122,6 +130,21 @@ function readerAuthorization() {
             issuer: 'test',
             subject: 'reader',
             capabilities: ['knowledge.read'],
+          }
+        : null,
+  });
+}
+
+function contributorAuthorization() {
+  return createAuthorizationService({
+    authenticate: async ({ token }) =>
+      token === 'contributor-token'
+        ? {
+            id: 'human:contributor',
+            kind: 'human',
+            issuer: 'test',
+            subject: 'contributor',
+            capabilities: ['knowledge.read', 'knowledge.propose'],
           }
         : null,
   });
@@ -169,6 +192,54 @@ describe('natively-mounted /api routes run the shared admission pipeline', () =>
         title: 'Insufficient capability.',
       });
       expect(rig.principalIds).toEqual([]);
+    } finally {
+      await rig.close();
+    }
+  });
+
+  test('published shared mode refuses a contributor mutation and audits the scope denial', async () => {
+    const workspaceAudit = vi.fn();
+    const rig = await bootNativeRig({
+      authorization: contributorAuthorization(),
+      workspaceAudit,
+    });
+    try {
+      const response = await fetch(`${rig.baseUrl}/api/native-mutating`, {
+        headers: { authorization: 'Bearer contributor-token' },
+      });
+      expect(response.status).toBe(403);
+      expect(await response.json()).toMatchObject({
+        type: 'urn:ok:error:authorization-denied',
+        title: 'Published knowledge is read-only. Start or resume a proposal before editing.',
+      });
+      expect(rig.principalIds).toEqual([]);
+      expect(workspaceAudit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: 'security.workspace-authorization',
+          reason: 'published-workspace-read-only',
+        }),
+      );
+    } finally {
+      await rig.close();
+    }
+  });
+
+  test('proposal shared mode dispatches mutations only for the proposal owner', async () => {
+    const rig = await bootNativeRig({
+      authorization: contributorAuthorization(),
+      runtimeScope: {
+        kind: 'proposal',
+        proposalId: 'proposal-1',
+        principalId: 'human:contributor',
+        branch: 'ok/proposals/owner/proposal-1',
+      },
+    });
+    try {
+      const response = await fetch(`${rig.baseUrl}/api/native-mutating`, {
+        headers: { authorization: 'Bearer contributor-token' },
+      });
+      expect(response.status).toBe(200);
+      expect(rig.principalIds).toEqual(['human:contributor']);
     } finally {
       await rig.close();
     }

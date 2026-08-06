@@ -41,12 +41,29 @@ export type SecurityAuditEvent =
       requestId?: string;
       principalId: string;
       capability: KnowledgeCapability;
-      reason?: 'missing-capability';
+      reason?: AuthorizationDenialReason;
+    }
+  | {
+      timestamp: string;
+      event: 'security.workspace-authorization';
+      outcome: 'denied';
+      transport: SecurityTransport;
+      resource: string;
+      requestId?: string;
+      principalId: string;
+      capability: 'knowledge.propose';
+      workspaceKind: 'published' | 'proposal';
+      proposalId?: string;
+      reason: WorkspaceAuthorizationDenialReason;
     };
 
 export type SecurityAuditSink = (event: SecurityAuditEvent) => void | Promise<void>;
 
 export type BearerFailureReason = 'missing' | 'multiple' | 'malformed' | 'too-large';
+export type WorkspaceAuthorizationDenialReason =
+  | 'published-workspace-read-only'
+  | 'proposal-principal-mismatch';
+export type AuthorizationDenialReason = 'missing-capability' | WorkspaceAuthorizationDenialReason;
 
 export type BearerParseResult =
   | { ok: true; token: string }
@@ -104,8 +121,15 @@ export class AuthorizationDeniedError extends Error {
   constructor(
     readonly principalId: string,
     readonly capability: KnowledgeCapability,
+    readonly reason: AuthorizationDenialReason = 'missing-capability',
   ) {
-    super('Insufficient capability.');
+    super(
+      reason === 'published-workspace-read-only'
+        ? 'Published knowledge is read-only. Start or resume a proposal before editing.'
+        : reason === 'proposal-principal-mismatch'
+          ? 'This proposal belongs to another principal.'
+          : 'Insufficient capability.',
+    );
     this.name = 'AuthorizationDeniedError';
   }
 }
@@ -219,7 +243,7 @@ export function createAuthorizationService(options: {
           capability,
           reason: 'missing-capability',
         });
-        throw new AuthorizationDeniedError(principal.id, capability);
+        throw new AuthorizationDeniedError(principal.id, capability, 'missing-capability');
       }
 
       await emit({

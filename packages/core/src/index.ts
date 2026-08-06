@@ -96,6 +96,7 @@ export {
   type KnowledgeRole,
   SECURITY_PRINCIPAL_KINDS,
   type SecurityPrincipal,
+  SecurityPrincipalIdSchema,
   type SecurityPrincipalKind,
   SecurityPrincipalKindSchema,
   SecurityPrincipalSchema,
@@ -106,6 +107,13 @@ export {
   type ParsedCollaborationCredential,
   parseCollaborationCredential,
 } from './security/collaboration-credential.ts';
+export {
+  decideKnowledgeMutationScope,
+  type KnowledgeMutationScopeDecision,
+  type KnowledgeRuntimeScope,
+  KnowledgeRuntimeScopeSchema,
+  ProposalIdSchema,
+} from './security/knowledge-runtime-scope.ts';
 
 // Markdown pipeline (new unified+remark)
 

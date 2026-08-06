@@ -28,6 +28,7 @@ import {
   DOCUMENT_OPEN_BYTE_LIMIT,
   humanFormat,
   isKnownConfigError,
+  type KnowledgeRuntimeScope,
   type LinksValidationSetting,
   type LinterConfig,
   type MarkdownManager,
@@ -182,7 +183,7 @@ import {
   setRenameLogIndex,
   sweepLazyPopOrphans,
 } from './rename-log.ts';
-import type { AuthorizationService } from './security/authorization.ts';
+import type { AuthorizationService, SecurityAuditSink } from './security/authorization.ts';
 import { createHocuspocusAuthorizationExtension } from './security/hocuspocus-authorization.ts';
 import { acquireServerLock, markServerLockDraining, releaseServerLock } from './server-lock.ts';
 import { createServerObserverExtension } from './server-observer-extension.ts';
@@ -226,6 +227,10 @@ export interface ServerOptions {
   remotePublicHost?: string;
   /** Shared-server authorization; omitted by local desktop and CLI deployments. */
   authorization?: AuthorizationService;
+  /** Shared runtime filesystem scope; omitted only in local single-user mode. */
+  runtimeScope?: KnowledgeRuntimeScope;
+  /** Audit sink for workspace-scope denials. */
+  workspaceAudit?: SecurityAuditSink;
   port?: number;
   host?: string;
   contentDir: string;
@@ -1604,7 +1609,10 @@ export function createServer(options: ServerOptions): ServerInstance {
 
     if (options.authorization) {
       hocuspocus.configuration.extensions.push(
-        createHocuspocusAuthorizationExtension(options.authorization),
+        createHocuspocusAuthorizationExtension(options.authorization, {
+          runtimeScope: options.runtimeScope,
+          workspaceAudit: options.workspaceAudit,
+        }),
       );
     }
 
@@ -1895,6 +1903,8 @@ export function createServer(options: ServerOptions): ServerInstance {
       durabilityState,
       remotePublicHost: options.remotePublicHost,
       authorization: options.authorization,
+      runtimeScope: options.runtimeScope,
+      workspaceAudit: options.workspaceAudit,
       sessionManager,
       commentDocHooksRef,
       contentDir,
