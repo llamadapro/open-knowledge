@@ -230,6 +230,7 @@ export {
   type HttpErrorStatus,
   streamingProblemEvent,
 } from './http/error-response.ts';
+export { getSecurityPrincipal } from './http/security-context.ts';
 export {
   type AttachIdleShutdownOptions,
   attachIdleShutdown,
@@ -412,6 +413,29 @@ export {
   resolveRemoteAccess,
 } from './remote-access.ts';
 export { resolvePackageVersion } from './resolve-package-version.ts';
+export {
+  type AuthenticationContext,
+  AuthenticationRequiredError,
+  AuthenticationUnavailableError,
+  AuthorizationDeniedError,
+  type AuthorizationService,
+  createAuthorizationService,
+  type PrincipalAuthenticationInput,
+  type PrincipalAuthenticator,
+  parseBearerAuthorizationHeader,
+  type SecurityAuditEvent,
+  type SecurityAuditSink,
+  type SecurityTransport,
+} from './security/authorization.ts';
+export {
+  createHocuspocusAuthorizationExtension,
+  type SecurityWebSocketContext,
+} from './security/hocuspocus-authorization.ts';
+export {
+  type KnownMcpTool,
+  MCP_TOOL_CAPABILITIES,
+  requiredCapabilityForMcpTool,
+} from './security/mcp-tool-policy.ts';
 // Seed scaffolder (`ok seed`) — shared module for the CLI Commander wrapper
 // and the Electron IPC handler. Deterministic plan/apply split; writes the
 // Karpathy three-layer starter + optional log.md + per-folder

@@ -84,6 +84,22 @@ export {
 } from './logging/secret-scrub.ts';
 // Cross-process contract version (pure integer; browser-safe).
 export { PROTOCOL_VERSION } from './protocol-version.ts';
+// Shared-server authentication and authorization contract. This remains
+// provider-neutral; Auth0 and other issuer adapters live in the server package.
+export {
+  capabilitiesForRole,
+  hasKnowledgeCapability,
+  KNOWLEDGE_CAPABILITIES,
+  KNOWLEDGE_ROLES,
+  type KnowledgeCapability,
+  KnowledgeCapabilitySchema,
+  type KnowledgeRole,
+  SECURITY_PRINCIPAL_KINDS,
+  type SecurityPrincipal,
+  type SecurityPrincipalKind,
+  SecurityPrincipalKindSchema,
+  SecurityPrincipalSchema,
+} from './security/authorization.ts';
 
 // Markdown pipeline (new unified+remark)
 

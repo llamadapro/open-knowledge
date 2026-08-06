@@ -6,6 +6,7 @@ import type { ServerInstance } from './tools/shared.ts';
 interface LoggedToolServerOptions {
   logger?: McpLogger;
   identityRef?: { current: AgentIdentity };
+  authorizeToolCall?: (tool: string, args: unknown) => Promise<void>;
 }
 
 interface ToolExtraLike {
@@ -240,8 +241,13 @@ export function createLoggedServer(
   server: ServerInstance,
   opts: LoggedToolServerOptions,
 ): ServerInstance {
-  const instrument = (name: string, handler: AnyToolHandler): AnyToolHandler =>
-    wrapToolHandlerForTelemetry(name, wrapToolHandlerForLogging(name, handler, opts));
+  const instrument = (name: string, handler: AnyToolHandler): AnyToolHandler => {
+    const authorized: AnyToolHandler = async (...args) => {
+      await opts.authorizeToolCall?.(name, args[0]);
+      return await handler(...args);
+    };
+    return wrapToolHandlerForTelemetry(name, wrapToolHandlerForLogging(name, authorized, opts));
+  };
 
   const originalTool = (server as unknown as { tool: AnyToolHandler }).tool.bind(server);
   // registerTool is the modern MCP SDK registration API; older mocks/test stubs may not

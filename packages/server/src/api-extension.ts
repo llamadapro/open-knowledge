@@ -666,6 +666,7 @@ import {
   type RenameLogEntry,
   resolveDocPathAtCommit,
 } from './rename-log.ts';
+import type { AuthorizationService } from './security/authorization.ts';
 import {
   applySeed,
   coercePackId,
@@ -2377,6 +2378,8 @@ export interface ApiExtensionOptions {
    * loopback-only.
    */
   remotePublicHost?: string;
+  /** Shared-server authorization; local single-user mode leaves this undefined. */
+  authorization?: AuthorizationService;
   hocuspocus: Hocuspocus;
   durabilityState: DocumentDurabilityState;
   sessionManager: AgentSessionManager;
@@ -22275,6 +22278,7 @@ export function createApiExtension(
     remotePublicHost,
     ephemeral,
     table: apiRouteTable,
+    authorization: options.authorization,
   });
 
   // The natively-routed route groups. Their paths live in the Hono app only —
@@ -22316,6 +22320,7 @@ export function createApiExtension(
       remotePublicHost,
       ephemeral,
       table: group.table,
+      authorization: options.authorization,
     }),
   );
   const nativeApi: NativeApiHandle = {

@@ -90,6 +90,8 @@ interface RegisterAllToolsOptions {
    * looking) instead of returning a URL the agent shouldn't navigate.
    */
   isHostedAgent?: boolean;
+  /** Optional shared-server authorization gate, evaluated before every tool handler. */
+  authorizeToolCall?: (tool: string, args: unknown) => Promise<void>;
 }
 
 export function registerAllTools(server: ServerInstance, opts: RegisterAllToolsOptions): void {
@@ -97,6 +99,7 @@ export function registerAllTools(server: ServerInstance, opts: RegisterAllToolsO
   const registrationServer = createLoggedServer(server, {
     logger: opts.logger,
     identityRef: opts.identityRef,
+    authorizeToolCall: opts.authorizeToolCall,
   });
   const named =
     (tool: string): ResolveCwd =>

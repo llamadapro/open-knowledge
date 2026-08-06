@@ -53,9 +53,16 @@ import {
   isLoopbackAddress,
 } from '../loopback.ts';
 import { hostHeaderMatchesPublicHost } from '../remote-access.ts';
+import {
+  AuthenticationRequiredError,
+  AuthenticationUnavailableError,
+  AuthorizationDeniedError,
+  type AuthorizationService,
+} from '../security/authorization.ts';
 import { getMeter, getTracer, onTelemetryShutdown } from '../telemetry.ts';
 import { errorResponse } from './error-response.ts';
 import { REQUEST_ID_HEADER, rememberRequestId, resolveRequestId } from './request-id.ts';
+import { rememberSecurityPrincipal } from './security-context.ts';
 
 /** Outcome of resolving a pathname against a route table. */
 interface ApiRouteResolution {
@@ -98,6 +105,8 @@ export interface ApiPipelineOptions {
   /** No-project ephemeral single-file mode — gates EVERY `/api/*` request. */
   ephemeral?: boolean;
   table: ApiRouteTable;
+  /** Omitted for local single-user mode; configured shared servers fail closed. */
+  authorization?: AuthorizationService;
 }
 
 /**
@@ -129,7 +138,7 @@ function httpDurationHist(): ReturnType<ReturnType<typeof getMeter>['createHisto
 }
 
 export function createApiRequestPipeline(opts: ApiPipelineOptions): ApiRequestPipeline {
-  const { log, remotePublicHost, ephemeral, table } = opts;
+  const { log, remotePublicHost, ephemeral, table, authorization } = opts;
   // In remote mode the tunnel's public Host is as legitimate as a loopback
   // name — the mount's admit gate already vetted it. Same widening the
   // api-extension applies to its route-level Host gates.
@@ -274,6 +283,56 @@ export function createApiRequestPipeline(opts: ApiPipelineOptions): ApiRequestPi
         response.writeHead(204);
         response.end();
         return true;
+      }
+    }
+
+    if (authorization && url.startsWith('/api/')) {
+      const capability = table.isMutating(url) ? 'knowledge.propose' : 'knowledge.read';
+      const authContext = {
+        transport: 'http' as const,
+        resource: routeTemplate,
+        ...(requestId ? { requestId } : {}),
+      };
+      try {
+        const principal = await authorization.authenticateBearer(
+          request.headers.authorization,
+          authContext,
+        );
+        await authorization.requireCapability(principal, capability, authContext);
+        rememberSecurityPrincipal(request, principal);
+      } catch (error) {
+        if (error instanceof AuthenticationRequiredError) {
+          response.setHeader('WWW-Authenticate', 'Bearer');
+          errorResponse(
+            response,
+            error.statusCode,
+            'urn:ok:error:authentication-required',
+            error.message,
+            { handler: 'api-authentication-gate' },
+          );
+          return true;
+        }
+        if (error instanceof AuthorizationDeniedError) {
+          errorResponse(
+            response,
+            error.statusCode,
+            'urn:ok:error:authorization-denied',
+            error.message,
+            { handler: 'api-authorization-gate' },
+          );
+          return true;
+        }
+        if (error instanceof AuthenticationUnavailableError) {
+          errorResponse(
+            response,
+            error.statusCode,
+            'urn:ok:error:authentication-unavailable',
+            error.message,
+            { handler: 'api-authentication-gate' },
+          );
+          return true;
+        }
+        throw error;
       }
     }
 

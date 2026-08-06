@@ -182,6 +182,8 @@ import {
   setRenameLogIndex,
   sweepLazyPopOrphans,
 } from './rename-log.ts';
+import type { AuthorizationService } from './security/authorization.ts';
+import { createHocuspocusAuthorizationExtension } from './security/hocuspocus-authorization.ts';
 import { acquireServerLock, markServerLockDraining, releaseServerLock } from './server-lock.ts';
 import { createServerObserverExtension } from './server-observer-extension.ts';
 import type { PairedWriteOrigin } from './server-observers.ts';
@@ -222,6 +224,8 @@ export interface ServerOptions {
    * SPA's origin. See `ApiExtensionOptions.remotePublicHost`.
    */
   remotePublicHost?: string;
+  /** Shared-server authorization; omitted by local desktop and CLI deployments. */
+  authorization?: AuthorizationService;
   port?: number;
   host?: string;
   contentDir: string;
@@ -1598,6 +1602,12 @@ export function createServer(options: ServerOptions): ServerInstance {
     });
     hocuspocus.configuration.extensions.push(liveDerivedIndexExtension);
 
+    if (options.authorization) {
+      hocuspocus.configuration.extensions.push(
+        createHocuspocusAuthorizationExtension(options.authorization),
+      );
+    }
+
     // Browser tabs supply { principalId, tabSessionId } via the auth token.
     // onAuthenticate parses the JSON token and hoists identity into connection
     // context so persistence.resolveWriterFromOrigin sees source:'connection'
@@ -1884,6 +1894,7 @@ export function createServer(options: ServerOptions): ServerInstance {
       hocuspocus,
       durabilityState,
       remotePublicHost: options.remotePublicHost,
+      authorization: options.authorization,
       sessionManager,
       commentDocHooksRef,
       contentDir,

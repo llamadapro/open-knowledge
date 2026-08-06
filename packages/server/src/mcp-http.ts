@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { displayNameFromClientName } from '@inkeep/open-knowledge-core';
+import { displayNameFromClientName, type SecurityPrincipal } from '@inkeep/open-knowledge-core';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { validateAgentId } from './agent-id.ts';
@@ -15,12 +15,20 @@ import {
 import { installPrettyZodErrors } from './mcp/pretty-zod-errors.ts';
 import { registerAllTools } from './mcp/tools/index.ts';
 import { resolveWithinRoot } from './mcp/tools/path-safety.ts';
+import {
+  AuthenticationRequiredError,
+  AuthenticationUnavailableError,
+  AuthorizationDeniedError,
+  type AuthorizationService,
+} from './security/authorization.ts';
+import { requiredCapabilityForMcpTool } from './security/mcp-tool-policy.ts';
 import { RUNTIME_VERSION } from './version-constants.ts';
 
 interface McpHttpSession {
   transport: StreamableHTTPServerTransport;
   server: McpServer;
   ttlTimer?: ReturnType<typeof setTimeout>;
+  securityPrincipalRef?: { current: SecurityPrincipal };
 }
 
 export interface McpHttpHandlerOptions {
@@ -42,6 +50,8 @@ export interface McpHttpHandlerOptions {
   };
   sessionTtlMs?: number;
   maxSessions?: number;
+  /** Omitted for local single-user mode; configured shared servers fail closed. */
+  authorization?: AuthorizationService;
 }
 
 export interface McpHttpHandler {
@@ -65,6 +75,7 @@ function createSessionServer(
   transport: StreamableHTTPServerTransport,
   forwardedConnectionId: string | undefined,
   isHostedAgent: boolean,
+  securityPrincipalRef: { current: SecurityPrincipal } | undefined,
 ): McpHttpSession {
   const config = opts.config;
   // No `instructions` handshake — see startGlobalMcpServer. The
@@ -132,9 +143,19 @@ function createSessionServer(
     config,
     identityRef,
     isHostedAgent,
+    authorizeToolCall:
+      opts.authorization && securityPrincipalRef
+        ? async (tool, args) => {
+            await opts.authorization?.requireCapability(
+              securityPrincipalRef.current,
+              requiredCapabilityForMcpTool(tool, args),
+              { transport: 'mcp', resource: `tool:${tool}` },
+            );
+          }
+        : undefined,
   });
 
-  return { server, transport };
+  return { server, transport, securityPrincipalRef };
 }
 
 /**
@@ -148,6 +169,38 @@ export function createMcpHttpHandler(opts: McpHttpHandlerOptions): McpHttpHandle
   const sessions = new Map<string, McpHttpSession>();
   const sessionTtlMs = opts.sessionTtlMs ?? 30 * 60 * 1000;
   const maxSessions = opts.maxSessions ?? 100;
+
+  function writeSecurityError(res: ServerResponse, error: unknown): void {
+    if (error instanceof AuthenticationRequiredError) {
+      res.setHeader('WWW-Authenticate', 'Bearer');
+      writePlain(res, error.statusCode, error.message);
+      return;
+    }
+    if (
+      error instanceof AuthenticationUnavailableError ||
+      error instanceof AuthorizationDeniedError
+    ) {
+      writePlain(res, error.statusCode, error.message);
+      return;
+    }
+    throw error;
+  }
+
+  async function authenticateRequest(
+    req: IncomingMessage,
+    resource: string,
+  ): Promise<SecurityPrincipal | undefined> {
+    if (!opts.authorization) return undefined;
+    const principal = await opts.authorization.authenticateBearer(req.headers.authorization, {
+      transport: 'mcp',
+      resource,
+    });
+    await opts.authorization.requireCapability(principal, 'knowledge.read', {
+      transport: 'mcp',
+      resource,
+    });
+    return principal;
+  }
 
   async function closeSession(sessionId: string, reason: string): Promise<void> {
     const session = sessions.get(sessionId);
@@ -185,6 +238,19 @@ export function createMcpHttpHandler(opts: McpHttpHandlerOptions): McpHttpHandle
           writePlain(res, 404, 'MCP session not found');
           return;
         }
+        try {
+          const principal = await authenticateRequest(req, 'session');
+          if (principal && session.securityPrincipalRef) {
+            if (principal.id !== session.securityPrincipalRef.current.id) {
+              writePlain(res, 403, 'MCP session principal mismatch');
+              return;
+            }
+            session.securityPrincipalRef.current = principal;
+          }
+        } catch (error) {
+          writeSecurityError(res, error);
+          return;
+        }
         touchSession(sessionId, session);
         await session.transport.handleRequest(req, res);
         return;
@@ -192,6 +258,14 @@ export function createMcpHttpHandler(opts: McpHttpHandlerOptions): McpHttpHandle
 
       if (req.method !== 'POST') {
         writePlain(res, 400, 'Missing MCP session. Initialize with POST /mcp first.');
+        return;
+      }
+      let securityPrincipalRef: { current: SecurityPrincipal } | undefined;
+      try {
+        const principal = await authenticateRequest(req, 'session:initialize');
+        if (principal) securityPrincipalRef = { current: principal };
+      } catch (error) {
+        writeSecurityError(res, error);
         return;
       }
       if (sessions.size >= maxSessions) {
@@ -237,6 +311,7 @@ export function createMcpHttpHandler(opts: McpHttpHandlerOptions): McpHttpHandle
               transport,
               forwardedConnectionId,
               isHostedAgent,
+              securityPrincipalRef,
             );
             await session.server.connect(transport);
             sessions.set(newSessionId, session);

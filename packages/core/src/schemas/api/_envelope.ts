@@ -197,6 +197,10 @@ export const ProblemTypeSchema = z.enum([
   'urn:ok:error:method-not-allowed',
   'urn:ok:error:invalid-request',
   'urn:ok:error:payload-too-large',
+  // Shared-server identity and capability enforcement.
+  'urn:ok:error:authentication-required',
+  'urn:ok:error:authorization-denied',
+  'urn:ok:error:authentication-unavailable',
   // Request-body read exceeded the per-function 30s timeout in `readRequestBody`.
   // Distinct URN from `payload-too-large` (size cap) and `invalid-request`
   // (parse/shape) so SDK consumers can branch on retry-class (408 → drop

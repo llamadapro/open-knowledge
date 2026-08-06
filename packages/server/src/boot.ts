@@ -227,6 +227,7 @@ export interface BootServerOptions
     | 'embeddingsKeyStore'
     | 'singleDocRelPath'
     | 'ephemeral'
+    | 'authorization'
   > {
   /**
    * The project's loaded `Config` (parsed from `.ok/config.yml`,
@@ -724,6 +725,7 @@ async function bootServerInner(opts: BootServerOptions): Promise<BootedServer> {
     embeddingsKeyStore: opts.embeddingsKeyStore,
     singleDocRelPath: opts.singleDocRelPath,
     ephemeral: opts.ephemeral,
+    authorization: opts.authorization,
   });
 
   const {
@@ -756,6 +758,7 @@ async function bootServerInner(opts: BootServerOptions): Promise<BootedServer> {
         config: opts.config,
         getServerUrl: () => `http://${mcpHost}:${boundPort}`,
         log,
+        authorization: opts.authorization,
       });
 
   // HTTP server — `mountMcpAndApi` installs the `/mcp` + `/api/*` request

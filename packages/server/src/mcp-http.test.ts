@@ -27,6 +27,7 @@ import {
   type McpHttpHandler,
   type McpHttpHandlerOptions,
 } from './mcp-http.ts';
+import { createAuthorizationService } from './security/authorization.ts';
 
 const MCP_PROTOCOL_VERSION = '2025-06-18';
 
@@ -38,7 +39,9 @@ interface SessionHarness {
 
 async function bootHandler(
   config: Config,
-  handlerOptions: Partial<Pick<McpHttpHandlerOptions, 'log' | 'maxSessions' | 'sessionTtlMs'>> = {},
+  handlerOptions: Partial<
+    Pick<McpHttpHandlerOptions, 'authorization' | 'log' | 'maxSessions' | 'sessionTtlMs'>
+  > = {},
 ): Promise<SessionHarness> {
   const contentDir = mkdtempSync(join(tmpdir(), 'ok-mcp-http-cfg-'));
   const port = await getFreeLoopbackPort();
@@ -134,6 +137,7 @@ async function openMcpSession(
       'content-type': 'application/json',
       'mcp-session-id': sessionId as string,
       'mcp-protocol-version': protocolVersion,
+      ...extraHeaders,
     },
     body: JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }),
   });
@@ -147,6 +151,32 @@ let openHarnesses: SessionHarness[] = [];
 beforeEach(() => {
   openHarnesses = [];
 });
+
+function testAuthorization() {
+  return createAuthorizationService({
+    authenticate: async ({ token }) => {
+      if (token === 'reader-token') {
+        return {
+          id: 'agent:reader:test',
+          kind: 'agent',
+          issuer: 'test',
+          subject: 'reader',
+          capabilities: ['knowledge.read'],
+        };
+      }
+      if (token === 'other-token') {
+        return {
+          id: 'agent:other:test',
+          kind: 'agent',
+          issuer: 'test',
+          subject: 'other',
+          capabilities: ['knowledge.read'],
+        };
+      }
+      return null;
+    },
+  });
+}
 
 afterEach(async () => {
   await Promise.allSettled(openHarnesses.map((h) => h.cleanup()));
@@ -189,6 +219,112 @@ test('active MCP session cap refuses new sessions before allocation', async () =
 
   expect(second.status).toBe(503);
   expect(await second.text()).toContain('Too many active MCP sessions');
+});
+
+test('shared MCP mode refuses anonymous session initialization', async () => {
+  const config: Config = ConfigSchema.parse({});
+  const harness = await bootHandler(config, { authorization: testAuthorization() });
+  openHarnesses.push(harness);
+
+  const response = await fetch(`http://127.0.0.1:${harness.port}/mcp`, {
+    method: 'POST',
+    headers: {
+      accept: 'application/json, text/event-stream',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'initialize',
+      params: {
+        protocolVersion: MCP_PROTOCOL_VERSION,
+        capabilities: {},
+        clientInfo: { name: 'anonymous-probe', version: '0.0.0' },
+      },
+    }),
+  });
+
+  expect(response.status).toBe(401);
+  expect(response.headers.get('www-authenticate')).toBe('Bearer');
+  expect(await response.text()).toBe('Authentication required.');
+});
+
+test('shared MCP mode authorizes each tool against the session principal', async () => {
+  const config: Config = ConfigSchema.parse({});
+  const harness = await bootHandler(config, { authorization: testAuthorization() });
+  openHarnesses.push(harness);
+  const authHeaders = { authorization: 'Bearer reader-token' };
+  const session = await openMcpSession(harness.port, authHeaders);
+
+  const read = await fetch(`http://127.0.0.1:${harness.port}/mcp`, {
+    method: 'POST',
+    headers: {
+      accept: 'application/json, text/event-stream',
+      'content-type': 'application/json',
+      'mcp-session-id': session.sessionId,
+      'mcp-protocol-version': session.protocolVersion,
+      ...authHeaders,
+    },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 10,
+      method: 'tools/call',
+      params: { name: 'config', arguments: {} },
+    }),
+  });
+  const readBody = (await read.json()) as { result?: { isError?: boolean } };
+  expect(read.status).toBe(200);
+  expect(readBody.result?.isError).not.toBe(true);
+
+  const write = await fetch(`http://127.0.0.1:${harness.port}/mcp`, {
+    method: 'POST',
+    headers: {
+      accept: 'application/json, text/event-stream',
+      'content-type': 'application/json',
+      'mcp-session-id': session.sessionId,
+      'mcp-protocol-version': session.protocolVersion,
+      ...authHeaders,
+    },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 11,
+      method: 'tools/call',
+      params: {
+        name: 'write',
+        arguments: { document: { path: 'denied', content: 'not written' } },
+      },
+    }),
+  });
+  const writeBody = (await write.json()) as {
+    result?: { isError?: boolean; content?: Array<{ text?: string }> };
+  };
+  expect(write.status).toBe(200);
+  expect(writeBody.result?.isError).toBe(true);
+  expect(writeBody.result?.content?.[0]?.text).toContain('Insufficient capability');
+});
+
+test('an MCP session cannot be resumed by a different authenticated principal', async () => {
+  const config: Config = ConfigSchema.parse({});
+  const harness = await bootHandler(config, { authorization: testAuthorization() });
+  openHarnesses.push(harness);
+  const session = await openMcpSession(harness.port, {
+    authorization: 'Bearer reader-token',
+  });
+
+  const response = await fetch(`http://127.0.0.1:${harness.port}/mcp`, {
+    method: 'POST',
+    headers: {
+      accept: 'application/json, text/event-stream',
+      'content-type': 'application/json',
+      authorization: 'Bearer other-token',
+      'mcp-session-id': session.sessionId,
+      'mcp-protocol-version': session.protocolVersion,
+    },
+    body: JSON.stringify({ jsonrpc: '2.0', method: 'notifications/ping' }),
+  });
+
+  expect(response.status).toBe(403);
+  expect(await response.text()).toBe('MCP session principal mismatch');
 });
 
 test('mcp-tool-path-traversal: explicit cwd outside configured project root is rejected', async () => {

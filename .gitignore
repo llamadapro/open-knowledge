@@ -17,6 +17,7 @@ test-results/
 packages/app/test-results/
 playwright-report/
 blob-report/
+coverage/
 .vscode/
 .mcp.json
 .cursor/mcp.json

@@ -34,6 +34,8 @@ jobs:
         run: pnpm run lint
       - name: Build and typecheck
         run: pnpm exec turbo run build typecheck
+      - name: Verify shared-server security coverage
+        run: pnpm run test:security:coverage
       - name: Test with documented upstream probes quarantined
         run: |
           set -euo pipefail
@@ -50,7 +52,8 @@ jobs:
             --exclude tests/unit/desktop-host-contract-single-source.test.ts &
           pids+=("$!")
           pnpm --filter @inkeep/open-knowledge-server exec vitest run \
-            --exclude src/timeline-query.test.ts &
+            --exclude src/timeline-query.test.ts \
+            --exclude src/acp/thread-socket.test.ts &
           pids+=("$!")
 
           status=0
@@ -62,6 +65,10 @@ jobs:
         run: >-
           pnpm --filter @inkeep/open-knowledge-server exec vitest run
           src/timeline-query.test.ts
+      - name: Verify upstream thread socket history in isolation
+        run: >-
+          pnpm --filter @inkeep/open-knowledge-server exec vitest run
+          src/acp/thread-socket.test.ts
       - name: Verify upstream desktop contract in isolation
         run: >-
           pnpm --filter @inkeep/open-knowledge-desktop exec vitest run
@@ -118,7 +125,8 @@ jobs:
             --exclude tests/unit/desktop-host-contract-single-source.test.ts &
           pids+=("$!")
           pnpm --filter @inkeep/open-knowledge-server exec vitest run \
-            --exclude src/timeline-query.test.ts &
+            --exclude src/timeline-query.test.ts \
+            --exclude src/acp/thread-socket.test.ts &
           pids+=("$!")
 
           status=0
@@ -130,6 +138,10 @@ jobs:
         run: >-
           pnpm --filter @inkeep/open-knowledge-server exec vitest run
           src/timeline-query.test.ts
+      - name: Verify upstream thread socket history in isolation
+        run: >-
+          pnpm --filter @inkeep/open-knowledge-server exec vitest run
+          src/acp/thread-socket.test.ts
       - name: Verify upstream desktop contract in isolation
         run: >-
           pnpm --filter @inkeep/open-knowledge-desktop exec vitest run

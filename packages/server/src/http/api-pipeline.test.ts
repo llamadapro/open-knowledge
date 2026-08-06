@@ -2,8 +2,13 @@ import { createServer } from 'node:http';
 import { describe, expect, test } from 'vitest';
 import { parseProblem, rawRequest } from '../composition-rig.test-helper.ts';
 import { listenOnLoopback } from '../loopback-rig-test-helpers.ts';
+import {
+  type AuthorizationService,
+  createAuthorizationService,
+} from '../security/authorization.ts';
 import { type ApiRouteTable, createApiRequestPipeline } from './api-pipeline.ts';
 import { createHttpApp, type NativeApiHandle } from './http-app.ts';
+import { getSecurityPrincipal } from './security-context.ts';
 
 /**
  * Gate parity for natively-mounted `/api/*` routes. The composition suite
@@ -30,17 +35,22 @@ interface NativeRig {
   port: number;
   baseUrl: string;
   legacyCalls: string[];
+  principalIds: Array<string | undefined>;
   close: () => Promise<void>;
 }
 
-async function bootNativeRig(opts: { ephemeral?: boolean } = {}): Promise<NativeRig> {
+async function bootNativeRig(
+  opts: { authorization?: AuthorizationService; ephemeral?: boolean } = {},
+): Promise<NativeRig> {
   const legacyCalls: string[] = [];
+  const principalIds: Array<string | undefined> = [];
   const table: ApiRouteTable = {
     resolve(pathname) {
       if (pathname === '/api/native-ping' || pathname === '/api/native-mutating') {
         return {
           template: pathname,
-          dispatch: async (_req, res) => {
+          dispatch: async (req, res) => {
+            principalIds.push(getSecurityPrincipal(req)?.id);
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ pong: true }));
           },
@@ -75,6 +85,7 @@ async function bootNativeRig(opts: { ephemeral?: boolean } = {}): Promise<Native
     dispatch: createApiRequestPipeline({
       log: fakeLog,
       ephemeral: opts.ephemeral,
+      authorization: opts.authorization,
       table,
     }),
   };
@@ -93,6 +104,7 @@ async function bootNativeRig(opts: { ephemeral?: boolean } = {}): Promise<Native
     port,
     baseUrl,
     legacyCalls,
+    principalIds,
     close: () =>
       new Promise<void>((resolvePromise, reject) => {
         server.close((err) => (err ? reject(err) : resolvePromise()));
@@ -100,7 +112,68 @@ async function bootNativeRig(opts: { ephemeral?: boolean } = {}): Promise<Native
   };
 }
 
+function readerAuthorization() {
+  return createAuthorizationService({
+    authenticate: async ({ token }) =>
+      token === 'reader-token'
+        ? {
+            id: 'human:reader',
+            kind: 'human',
+            issuer: 'test',
+            subject: 'reader',
+            capabilities: ['knowledge.read'],
+          }
+        : null,
+  });
+}
+
 describe('natively-mounted /api routes run the shared admission pipeline', () => {
+  test('shared mode rejects anonymous API reads before dispatch', async () => {
+    const rig = await bootNativeRig({ authorization: readerAuthorization() });
+    try {
+      const response = await fetch(`${rig.baseUrl}/api/native-ping`);
+      expect(response.status).toBe(401);
+      expect(response.headers.get('www-authenticate')).toBe('Bearer');
+      expect(await response.json()).toMatchObject({
+        type: 'urn:ok:error:authentication-required',
+        title: 'Authentication required.',
+      });
+      expect(rig.principalIds).toEqual([]);
+    } finally {
+      await rig.close();
+    }
+  });
+
+  test('shared mode propagates the authenticated principal to read handlers', async () => {
+    const rig = await bootNativeRig({ authorization: readerAuthorization() });
+    try {
+      const response = await fetch(`${rig.baseUrl}/api/native-ping`, {
+        headers: { authorization: 'Bearer reader-token' },
+      });
+      expect(response.status).toBe(200);
+      expect(rig.principalIds).toEqual(['human:reader']);
+    } finally {
+      await rig.close();
+    }
+  });
+
+  test('shared mode requires proposal capability for mutating routes', async () => {
+    const rig = await bootNativeRig({ authorization: readerAuthorization() });
+    try {
+      const response = await fetch(`${rig.baseUrl}/api/native-mutating`, {
+        headers: { authorization: 'Bearer reader-token' },
+      });
+      expect(response.status).toBe(403);
+      expect(await response.json()).toMatchObject({
+        type: 'urn:ok:error:authorization-denied',
+        title: 'Insufficient capability.',
+      });
+      expect(rig.principalIds).toEqual([]);
+    } finally {
+      await rig.close();
+    }
+  });
+
   test('a claimed route is served natively — the legacy dispatch never sees it', async () => {
     const rig = await bootNativeRig();
     try {
