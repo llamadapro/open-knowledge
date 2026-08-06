@@ -40,7 +40,8 @@ jobs:
           pids=()
           pnpm exec turbo run test \
             --filter='!@inkeep/open-knowledge' \
-            --filter='!@inkeep/open-knowledge-desktop' &
+            --filter='!@inkeep/open-knowledge-desktop' \
+            --filter='!@inkeep/open-knowledge-server' &
           pids+=("$!")
           pnpm --filter @inkeep/open-knowledge exec vitest run \
             --exclude src/mcp/keepalive-orphan-reaping.test.ts &
@@ -48,22 +49,28 @@ jobs:
           pnpm --filter @inkeep/open-knowledge-desktop exec vitest run \
             --exclude tests/unit/desktop-host-contract-single-source.test.ts &
           pids+=("$!")
+          pnpm --filter @inkeep/open-knowledge-server exec vitest run \
+            --exclude src/timeline-query.test.ts &
+          pids+=("$!")
 
           status=0
           for pid in "${pids[@]}"; do
             wait "$pid" || status=1
           done
           exit "$status"
+      - name: Verify upstream server history performance in isolation
+        run: >-
+          pnpm --filter @inkeep/open-knowledge-server exec vitest run
+          src/timeline-query.test.ts
+      - name: Verify upstream desktop contract in isolation
+        run: >-
+          pnpm --filter @inkeep/open-knowledge-desktop exec vitest run
+          tests/unit/desktop-host-contract-single-source.test.ts
       - name: Probe upstream MCP orphan reaping
         continue-on-error: true
         run: >-
           pnpm --filter @inkeep/open-knowledge exec vitest run
           src/mcp/keepalive-orphan-reaping.test.ts
-      - name: Probe upstream desktop contract isolation
-        continue-on-error: true
-        run: >-
-          pnpm --filter @inkeep/open-knowledge-desktop exec vitest run
-          tests/unit/desktop-host-contract-single-source.test.ts
 
   latest-upstream-stable:
     name: Latest upstream stable baseline
@@ -101,7 +108,8 @@ jobs:
           pids=()
           pnpm exec turbo run test \
             --filter='!@inkeep/open-knowledge' \
-            --filter='!@inkeep/open-knowledge-desktop' &
+            --filter='!@inkeep/open-knowledge-desktop' \
+            --filter='!@inkeep/open-knowledge-server' &
           pids+=("$!")
           pnpm --filter @inkeep/open-knowledge exec vitest run \
             --exclude src/mcp/keepalive-orphan-reaping.test.ts &
@@ -109,19 +117,25 @@ jobs:
           pnpm --filter @inkeep/open-knowledge-desktop exec vitest run \
             --exclude tests/unit/desktop-host-contract-single-source.test.ts &
           pids+=("$!")
+          pnpm --filter @inkeep/open-knowledge-server exec vitest run \
+            --exclude src/timeline-query.test.ts &
+          pids+=("$!")
 
           status=0
           for pid in "${pids[@]}"; do
             wait "$pid" || status=1
           done
           exit "$status"
+      - name: Verify upstream server history performance in isolation
+        run: >-
+          pnpm --filter @inkeep/open-knowledge-server exec vitest run
+          src/timeline-query.test.ts
+      - name: Verify upstream desktop contract in isolation
+        run: >-
+          pnpm --filter @inkeep/open-knowledge-desktop exec vitest run
+          tests/unit/desktop-host-contract-single-source.test.ts
       - name: Probe upstream MCP orphan reaping
         continue-on-error: true
         run: >-
           pnpm --filter @inkeep/open-knowledge exec vitest run
           src/mcp/keepalive-orphan-reaping.test.ts
-      - name: Probe upstream desktop contract isolation
-        continue-on-error: true
-        run: >-
-          pnpm --filter @inkeep/open-knowledge-desktop exec vitest run
-          tests/unit/desktop-host-contract-single-source.test.ts
