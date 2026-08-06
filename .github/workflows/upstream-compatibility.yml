@@ -35,10 +35,25 @@ jobs:
       - name: Build and typecheck
         run: pnpm exec turbo run build typecheck
       - name: Test with documented upstream probes quarantined
-        run: >-
-          pnpm exec turbo run test --
-          --exclude src/mcp/keepalive-orphan-reaping.test.ts
-          --exclude tests/unit/desktop-host-contract-single-source.test.ts
+        run: |
+          set -euo pipefail
+          pids=()
+          pnpm exec turbo run test \
+            --filter='!@inkeep/open-knowledge' \
+            --filter='!@inkeep/open-knowledge-desktop' &
+          pids+=("$!")
+          pnpm --filter @inkeep/open-knowledge exec vitest run \
+            --exclude src/mcp/keepalive-orphan-reaping.test.ts &
+          pids+=("$!")
+          pnpm --filter @inkeep/open-knowledge-desktop exec vitest run \
+            --exclude tests/unit/desktop-host-contract-single-source.test.ts &
+          pids+=("$!")
+
+          status=0
+          for pid in "${pids[@]}"; do
+            wait "$pid" || status=1
+          done
+          exit "$status"
       - name: Probe upstream MCP orphan reaping
         continue-on-error: true
         run: >-
@@ -81,10 +96,25 @@ jobs:
       - name: Build and typecheck
         run: pnpm exec turbo run build typecheck
       - name: Test with documented upstream probes quarantined
-        run: >-
-          pnpm exec turbo run test --
-          --exclude src/mcp/keepalive-orphan-reaping.test.ts
-          --exclude tests/unit/desktop-host-contract-single-source.test.ts
+        run: |
+          set -euo pipefail
+          pids=()
+          pnpm exec turbo run test \
+            --filter='!@inkeep/open-knowledge' \
+            --filter='!@inkeep/open-knowledge-desktop' &
+          pids+=("$!")
+          pnpm --filter @inkeep/open-knowledge exec vitest run \
+            --exclude src/mcp/keepalive-orphan-reaping.test.ts &
+          pids+=("$!")
+          pnpm --filter @inkeep/open-knowledge-desktop exec vitest run \
+            --exclude tests/unit/desktop-host-contract-single-source.test.ts &
+          pids+=("$!")
+
+          status=0
+          for pid in "${pids[@]}"; do
+            wait "$pid" || status=1
+          done
+          exit "$status"
       - name: Probe upstream MCP orphan reaping
         continue-on-error: true
         run: >-
