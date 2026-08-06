@@ -559,9 +559,16 @@ async function bootServerInner(opts: BootServerOptions): Promise<BootedServer> {
   const log = opts.log ?? getLogger('boot');
   const authorization =
     opts.authorization ??
-    resolveAuth0AuthorizationFromEnvironment(process.env, {
-      audit: (event) => log.info(event, event.event),
-    });
+    resolveAuth0AuthorizationFromEnvironment(
+      {
+        OK_AUTH0_ISSUER: process.env.OK_AUTH0_ISSUER,
+        OK_AUTH0_AUDIENCE: process.env.OK_AUTH0_AUDIENCE,
+        OK_AUTH0_MACHINE_PRINCIPALS_JSON: process.env.OK_AUTH0_MACHINE_PRINCIPALS_JSON,
+      },
+      {
+        audit: (event) => log.info(event, event.event),
+      },
+    );
 
   // Remote access (the `remote:` config block) — armed only on the explicit
   // `enableRemote` opt-in, never from config alone. Throws RemoteConfigError
