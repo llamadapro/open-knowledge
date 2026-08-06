@@ -8,6 +8,7 @@ export default defineConfig({
     include: [
       'packages/core/src/security/**/*.test.ts',
       'packages/server/src/http/api-pipeline.test.ts',
+      'packages/server/src/proposals/proposal-orchestrator.test.ts',
       'packages/server/src/proposals/proposal-workspace.test.ts',
       'packages/server/src/security/**/*.test.ts',
     ],
@@ -17,6 +18,7 @@ export default defineConfig({
         'packages/core/src/security/**/*.ts',
         'packages/server/src/security/**/*.ts',
         'packages/server/src/http/security-context.ts',
+        'packages/server/src/proposals/proposal-orchestrator.ts',
         'packages/server/src/proposals/proposal-workspace.ts',
       ],
       exclude: ['**/*.test.ts'],

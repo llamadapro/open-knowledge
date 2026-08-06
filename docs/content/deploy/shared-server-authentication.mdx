@@ -57,7 +57,11 @@ An authenticated shared server defaults to the read-only published branch. The d
 
 Hosted edits must run in a separate proposal runtime that is bound to one authenticated principal and one proposal branch. A contributor can mutate that runtime only when its principal id matches the proposal owner. HTTP writes, collaboration WebSocket updates, and MCP write tools all enforce the same rule. Omitting the runtime scope from an authenticated server fails closed to the published read-only scope.
 
-The proposal orchestrator that starts those dedicated runtimes, the review UI, and pull-request synchronization are separate deployment layers. Until they are configured, authenticated users can read published knowledge but cannot publish changes through the shared server.
+The server package exports `createProposalOrchestrator` for this lifecycle. It composes the validated proposal-workspace service with a deployment-provided `ProposalRuntimeProvisioner`. The provisioner may use a local process, a container platform, or another isolated runtime, but its `ensureRunning` and `stop` operations must be idempotent for the opaque runtime key. The trusted launch request contains the server-derived worktree and proposal scope; callers cannot submit a filesystem path.
+
+Runtime descriptors are validated before they leave the orchestrator. Connection URLs must be bounded, credential-free HTTP(S) URLs, and browser/API responses expose no worktree path. Concurrent starts for the same proposal are coalesced without blocking unrelated proposals. A failed launch preserves the worktree for retry, while abandonment stops the runtime before removing clean Git state.
+
+The runtime provisioner, lifecycle API, review UI, and pull-request synchronization remain deployment layers. Until a deployment configures them, authenticated users can read published knowledge but cannot publish changes through the shared server.
 
 This hosted isolation does not change local desktop or CLI projects. Without shared-server authentication, OpenKnowledge continues to use the selected local checkout directly.
 

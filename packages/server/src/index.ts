@@ -397,6 +397,17 @@ export {
   untrackTrackedProjectSkillProjection,
 } from './project-skill-git.ts';
 export {
+  createProposalOrchestrator,
+  type ProposalOrchestrator,
+  ProposalOrchestratorError,
+  type ProposalRuntimeDescriptor,
+  ProposalRuntimeDescriptorSchema,
+  type ProposalRuntimeLaunchInput,
+  type ProposalRuntimeProvisioner,
+  type ProposalRuntimeTarget,
+  type ProposalSession,
+} from './proposals/proposal-orchestrator.ts';
+export {
   createProposalWorkspaceService,
   type ProposalWorkspace,
   ProposalWorkspaceError,
