@@ -469,6 +469,7 @@
     "5_j-DA": ["Forcer la fermeture du terminal"],
     "5aahsI": ["rien (", ["0"], " n'est pas un motif valide)"],
     "5e1Dri": ["Le libellé de menu par lequel les agents choisissent ce modèle (obligatoire)."],
+    "5fsMBo": ["Use your company account to access this knowledge base."],
     "5gr_ev": [
       "Devient le contenu du document lorsque quelqu'un en crée un à partir de ce modèle. Saisissez <0>",
       ["dateToken"],
@@ -1466,6 +1467,7 @@
     "ItxGi3": ["Les pièces jointes doivent totaliser moins de 3 Mo."],
     "Ix0K8o": ["Masquer les nœuds d'URL externes"],
     "IxHMdF": ["Impossible de supprimer ce commentaire."],
+    "Ixee2H": ["Reload the page or contact your administrator if the problem continues."],
     "IxyZXD": ["Capture d'écran"],
     "J2Mv98": ["Nom (par ex. ", ["login"], ")"],
     "J2_JuX": ["rien (", ["0"], " ne peut correspondre à aucun document)"],
@@ -2706,6 +2708,7 @@
       ["currentLabel"],
       "</1>."
     ],
+    "_9WDYq": ["Sign in to OpenKnowledge"],
     "_FLBbi": [["sizeText"], " · secrets masqués · vidage de plantage non masqué"],
     "_GRWOJ": ["Changer de fournisseur d'embeddings ?"],
     "_HgF9q": ["Trier par"],
@@ -3799,6 +3802,7 @@
     "n2lRue": ["Validez ou remisez vos modifications pour changer :"],
     "n3T3EE": ["Installé dans ", ["label"], " — cliquez pour retirer"],
     "n3wx1q": ["Restaurer cette version ?"],
+    "n3xHGo": ["Sign-in is unavailable"],
     "n5Vy3l": ["Ouvert sur la branche ", ["branch"]],
     "n5n_vi": ["Dépôt privé"],
     "n6hXUm": [
@@ -4112,6 +4116,7 @@
       "Dites-nous ce qui n'a pas fonctionné et nous rassemblerons les journaux. Rien ne quitte votre Mac avant que vous ne l'ayez relu."
     ],
     "rDOuNw": ["Échec de l'importation du modèle"],
+    "rDo32M": ["Checking your company access..."],
     "rENNI6": ["URL de partage non valide."],
     "rFL-yb": ["Modifier une copie"],
     "rFTdVq": ["Afficher dans l'Explorateur"],

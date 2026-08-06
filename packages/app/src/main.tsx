@@ -28,6 +28,7 @@ import { createRoot } from 'react-dom/client';
 import { AppErrorBoundary, CrashReportingBoundary } from '@/components/AppErrorBoundary';
 import { AcpHarnessAgentDetection } from '@/components/acp/AcpHarnessAgentDetection';
 import { selectDesktopRootApp } from '@/components/desktop-root-app';
+import { HostedAuthBoundary } from '@/components/HostedAuthBoundary';
 import { ReportBugCrashInviteTrigger } from '@/components/ReportBugCrashInviteTrigger';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -38,6 +39,7 @@ import { installClientFetchWrapper } from '@/lib/client-fetch';
 import { installConsentListener } from '@/lib/consent-store';
 import { installCrashInviteListener } from '@/lib/crash-invite-store';
 import { installFeedbackNudgeStore } from '@/lib/feedback-nudge-store';
+import { configureHostedAuthentication, getHostedAccessTokenSupplier } from '@/lib/hosted-auth';
 // Side-effect import: loads + activates the i18n catalog before first render.
 import { i18n } from '@/lib/i18n';
 import { installClientLogForwarder } from '@/lib/install-client-log-forwarder';
@@ -78,8 +80,17 @@ import './globals.css';
 // (the renderer host doesn't serve /api; the hocuspocus instance behind the
 // bridge does). Must run BEFORE any component mounts so the first paint's
 // `fetch('/api/documents')` is both instrumented and routed correctly.
+const hostedAuthSession =
+  typeof window === 'undefined'
+    ? null
+    : configureHostedAuthentication(import.meta.env, {
+        location: window.location,
+        replaceHistory: (path) => window.history.replaceState({}, document.title, path),
+      });
+
 installClientFetchWrapper({
   apiOrigin: typeof window !== 'undefined' ? window.okDesktop?.config.apiOrigin : undefined,
+  getAccessToken: getHostedAccessTokenSupplier(),
 });
 
 // Forward renderer console output to the server `/api/client-logs` ingest so
@@ -251,36 +262,38 @@ createRoot(root).render(
           disableTransitionOnChange
           storageKey="ok-theme-v1"
         >
-          <RegisteredAgentHydrator />
-          {/*
-           * Last-resort shell boundary: catches render crashes that escape
-           * every inner boundary (per-Activity DocumentErrorBoundary, settings
-           * chunk) so an app-shell crash shows a recoverable fallback instead
-           * of unmounting the root. Inside the providers so the fallback keeps
-           * i18n + theme.
-           */}
-          <TooltipProvider>
-            <AppErrorBoundary>{selectDesktopRootApp(desktopBridge)}</AppErrorBoundary>
+          <HostedAuthBoundary session={hostedAuthSession} reload={() => window.location.reload()}>
+            <RegisteredAgentHydrator />
             {/*
-             * Crash-invite dialog host — a sibling of the root app, outside
-             * the shell boundary, so an invitation still surfaces while the
-             * fallback is showing, in every window mode. Being outside every
-             * boundary also means a throw here would unmount the React root,
-             * so it gets its own null-fallback boundary.
+             * Last-resort shell boundary: catches render crashes that escape
+             * every inner boundary (per-Activity DocumentErrorBoundary, settings
+             * chunk) so an app-shell crash shows a recoverable fallback instead
+             * of unmounting the root. Inside the providers so the fallback keeps
+             * i18n + theme.
              */}
-            {desktopBridge !== undefined && (
-              <CrashReportingBoundary>
-                <ReportBugCrashInviteTrigger bridge={desktopBridge} />
-              </CrashReportingBoundary>
-            )}
-          </TooltipProvider>
-          {/*
-           * Sonner toaster for ad-hoc status/error toasts (clone dialog, file
-           * tree, etc.). Auto-update notices are NOT routed here — they live
-           * in the sidebar footer via <UpdateNotices /> for a persistent home
-           * that matches their permanent-until-clicked semantics.
-           */}
-          <Toaster richColors closeButton />
+            <TooltipProvider>
+              <AppErrorBoundary>{selectDesktopRootApp(desktopBridge)}</AppErrorBoundary>
+              {/*
+               * Crash-invite dialog host — a sibling of the root app, outside
+               * the shell boundary, so an invitation still surfaces while the
+               * fallback is showing, in every window mode. Being outside every
+               * boundary also means a throw here would unmount the React root,
+               * so it gets its own null-fallback boundary.
+               */}
+              {desktopBridge !== undefined && (
+                <CrashReportingBoundary>
+                  <ReportBugCrashInviteTrigger bridge={desktopBridge} />
+                </CrashReportingBoundary>
+              )}
+            </TooltipProvider>
+            {/*
+             * Sonner toaster for ad-hoc status/error toasts (clone dialog, file
+             * tree, etc.). Auto-update notices are NOT routed here — they live
+             * in the sidebar footer via <UpdateNotices /> for a persistent home
+             * that matches their permanent-until-clicked semantics.
+             */}
+            <Toaster richColors closeButton />
+          </HostedAuthBoundary>
         </ThemeProvider>
       </QueryClientProvider>
     </I18nProvider>

@@ -185,4 +185,44 @@ describe('installClientFetchWrapper', () => {
     expect(calls[0]?.input).toBe('http://localhost:59534/api/documents');
     expect(header(calls[0], PROTOCOL)).toBe('1');
   });
+
+  test('hosted mode adds a fresh bearer token to API requests only', async () => {
+    const { calls } = stubWindowFetch();
+    const getAccessToken = vi.fn(async () => 'hosted-access-token');
+    installClientFetchWrapper({ getAccessToken });
+
+    await window.fetch('/api/documents', { headers: { Authorization: 'Bearer caller-token' } });
+    await window.fetch('https://identity.example/oauth/token');
+
+    expect(header(calls[0], 'authorization')).toBe('Bearer hosted-access-token');
+    expect(getAccessToken).toHaveBeenCalledOnce();
+    expect(calls[1]?.input).toBe('https://identity.example/oauth/token');
+    expect(header(calls[1], 'authorization')).toBeUndefined();
+  });
+
+  test('hosted mode authenticates rewritten Request objects', async () => {
+    const { calls } = stubWindowFetch();
+    installClientFetchWrapper({
+      apiOrigin: 'http://localhost:59534',
+      getAccessToken: async () => 'hosted-access-token',
+    });
+    const request = new Request('http://localhost:5173/api/documents');
+
+    await window.fetch(request);
+
+    expect(calls[0]?.input).toBeInstanceOf(Request);
+    expect(header(calls[0], 'authorization')).toBe('Bearer hosted-access-token');
+  });
+
+  test('does not dispatch an API request when hosted token retrieval fails', async () => {
+    const { fetchStub } = stubWindowFetch();
+    installClientFetchWrapper({
+      getAccessToken: async () => {
+        throw new Error('login required');
+      },
+    });
+
+    await expect(window.fetch('/api/documents')).rejects.toThrow('login required');
+    expect(fetchStub).not.toHaveBeenCalled();
+  });
 });

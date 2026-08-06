@@ -2095,6 +2095,10 @@ msgstr "Checking sign-in status"
 msgid "Checking source"
 msgstr "Checking source"
 
+#: src/components/HostedAuthBoundary.tsx
+msgid "Checking your company access..."
+msgstr "Checking your company access..."
+
 #: src/components/settings/AccountSection.tsx
 msgid "Checking your GitHub connection"
 msgstr "Checking your GitHub connection"
@@ -8941,12 +8945,17 @@ msgstr "Relevance"
 
 #: src/components/AppMenubar.tsx
 #: src/components/EditorActivityPool.tsx
+#: src/components/HostedAuthBoundary.tsx
 #: src/components/settings/SettingsDialogErrorBoundary.tsx
 #: src/components/TerminalGate.tsx
 #: src/lib/locale-load-failure-notice.ts
 #: src/lib/native-menu-catalog.ts
 msgid "Reload"
 msgstr "Reload"
+
+#: src/components/HostedAuthBoundary.tsx
+msgid "Reload the page or contact your administrator if the problem continues."
+msgstr "Reload the page or contact your administrator if the problem continues."
 
 #: src/components/acp/ThreadView.tsx
 msgid "Remember this for future agents"
@@ -10347,6 +10356,7 @@ msgstr "Shows above the code body. Round-trips as `title=\"...\"` in markdown."
 msgid "Sifting…"
 msgstr "Sifting…"
 
+#: src/components/HostedAuthBoundary.tsx
 #: src/components/settings/AccountSection.tsx
 #: src/components/settings/SyncSection.tsx
 #: src/components/ShareBranchSwitchDialog.tsx
@@ -10362,6 +10372,10 @@ msgstr "Sign in to {agentName} first"
 msgid "Sign in to {agentName} to continue."
 msgstr "Sign in to {agentName} to continue."
 
+#: src/components/HostedAuthBoundary.tsx
+msgid "Sign in to OpenKnowledge"
+msgstr "Sign in to OpenKnowledge"
+
 #. placeholder {0}: method.name
 #: src/components/acp/ThreadView.tsx
 msgid "Sign in with {0}"
@@ -10371,6 +10385,10 @@ msgstr "Sign in with {0}"
 #: src/components/acp/ThreadView.tsx
 msgid "Sign-in failed: {0}"
 msgstr "Sign-in failed: {0}"
+
+#: src/components/HostedAuthBoundary.tsx
+msgid "Sign-in is unavailable"
+msgstr "Sign-in is unavailable"
 
 #: src/components/AuthModal.tsx
 #: src/lib/transports/auth-transport.ts
@@ -12325,6 +12343,10 @@ msgstr "Use lowercase letters, digits, and <0>-</0> only."
 #: src/components/NewSkillDialog.tsx
 msgid "Use lowercase letters, numbers, and hyphens only"
 msgstr "Use lowercase letters, numbers, and hyphens only"
+
+#: src/components/HostedAuthBoundary.tsx
+msgid "Use your company account to access this knowledge base."
+msgstr "Use your company account to access this knowledge base."
 
 #: src/components/settings/ScopeBadge.tsx
 #: src/components/settings/SettingsDialogShell.tsx

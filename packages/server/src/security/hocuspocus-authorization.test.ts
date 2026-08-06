@@ -1,4 +1,4 @@
-import type { SecurityPrincipal } from '@inkeep/open-knowledge-core';
+import { createCollaborationCredential, type SecurityPrincipal } from '@inkeep/open-knowledge-core';
 import { describe, expect, test } from 'vitest';
 import { AuthenticationRequiredError, createAuthorizationService } from './authorization.ts';
 import {
@@ -74,6 +74,32 @@ describe('Hocuspocus authorization extension', () => {
       AuthenticationRequiredError,
     );
     expect(context.securityPrincipal).toBeUndefined();
+  });
+
+  test('authenticates the bearer portion of a collaboration credential envelope', async () => {
+    const ext = extension();
+    const context: SecurityWebSocketContext = {};
+    const token = createCollaborationCredential({
+      bearerToken: 'contributor',
+      syncToken: '{"expectedBranch":"main"}',
+    });
+    await ext.onAuthenticate?.(authPayload(token, context));
+    expect(context.securityPrincipal).toEqual(contributor);
+  });
+
+  test('rejects malformed and oversized credential envelopes', async () => {
+    const ext = extension();
+    await expect(
+      ext.onAuthenticate?.(authPayload('ok-auth-v1:not-json', {})),
+    ).rejects.toMatchObject({ reason: 'malformed' });
+    await expect(
+      ext.onAuthenticate?.(
+        authPayload(
+          `ok-auth-v1:${JSON.stringify({ bearerToken: 'b'.repeat(8 * 1024), syncToken: 's'.repeat(16 * 1024) })}`,
+          {},
+        ),
+      ),
+    ).rejects.toMatchObject({ reason: 'too-large' });
   });
 
   test('requires proposal capability for client-originated mutations', async () => {

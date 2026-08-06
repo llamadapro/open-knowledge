@@ -346,6 +346,7 @@
     "5_j-DA": ["強制結束終端機"],
     "5aahsI": ["無（", ["0"], " 不是有效的模式）"],
     "5e1Dri": ["代理挑選這個範本時看到的選單標籤（必填）。"],
+    "5fsMBo": ["Use your company account to access this knowledge base."],
     "5gr_ev": [
       "當有人用這個範本建立文件時，這會成為那份文件的內容。輸入 <0>",
       ["dateToken"],
@@ -1076,6 +1077,7 @@
     "ItxGi3": ["附件總大小必須小於 3 MB。"],
     "Ix0K8o": ["隱藏外部 URL 節點"],
     "IxHMdF": ["無法刪除那則註解。"],
+    "Ixee2H": ["Reload the page or contact your administrator if the problem continues."],
     "IxyZXD": ["螢幕擷圖"],
     "J2Mv98": ["名稱（例如 ", ["login"], "）"],
     "J2_JuX": ["無（", ["0"], " 無法比對到任何文件）"],
@@ -2067,6 +2069,7 @@
       ["currentLabel"],
       "</1> 上。"
     ],
+    "_9WDYq": ["Sign in to OpenKnowledge"],
     "_FLBbi": [["sizeText"], " · 已遮蔽機密資訊 · 當機傾印未遮蔽"],
     "_GRWOJ": ["要更換嵌入服務供應商嗎？"],
     "_HgF9q": ["排序方式"],
@@ -2908,6 +2911,7 @@
     "n2lRue": ["先提交或暫存變更才能切換："],
     "n3T3EE": ["已安裝在 ", ["label"], "——點一下可移除"],
     "n3wx1q": ["要還原到這個版本嗎？"],
+    "n3xHGo": ["Sign-in is unavailable"],
     "n5Vy3l": ["已在分支 ", ["branch"], " 上開啟"],
     "n5n_vi": ["私人儲存庫"],
     "n6hXUm": [
@@ -3147,6 +3151,7 @@
       "告訴我們哪裡出了問題，我們會收集記錄。在你檢查過之前，不會有任何內容離開你的 Mac。"
     ],
     "rDOuNw": ["匯入範本失敗"],
+    "rDo32M": ["Checking your company access..."],
     "rENNI6": ["分享網址無效。"],
     "rFL-yb": ["編輯一份副本"],
     "rFTdVq": ["在檔案總管中顯示"],

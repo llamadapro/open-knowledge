@@ -344,6 +344,7 @@
     "5_j-DA": ["强制结束终端"],
     "5aahsI": ["无（", ["0"], " 不是有效的模式）"],
     "5e1Dri": ["智能体选择这个模板时看到的菜单标签（必填）。"],
+    "5fsMBo": ["Use your company account to access this knowledge base."],
     "5gr_ev": [
       "当有人用这个模板创建文档时，这会成为该文档的内容。输入 <0>",
       ["dateToken"],
@@ -1066,6 +1067,7 @@
     "ItxGi3": ["附件总大小必须小于 3 MB。"],
     "Ix0K8o": ["隐藏外部 URL 节点"],
     "IxHMdF": ["无法删除那条评论。"],
+    "Ixee2H": ["Reload the page or contact your administrator if the problem continues."],
     "IxyZXD": ["截图"],
     "J2Mv98": ["名称（例如 ", ["login"], "）"],
     "J2_JuX": ["无（", ["0"], " 无法匹配任何文档）"],
@@ -2047,6 +2049,7 @@
       ["currentLabel"],
       "</1> 上。"
     ],
+    "_9WDYq": ["Sign in to OpenKnowledge"],
     "_FLBbi": [["sizeText"], " · 已隐去机密信息 · 崩溃转储未隐去"],
     "_GRWOJ": ["要更换嵌入服务提供方吗？"],
     "_HgF9q": ["排序方式"],
@@ -2884,6 +2887,7 @@
     "n2lRue": ["提交或暂存改动后才能切换："],
     "n3T3EE": ["已安装在 ", ["label"], "——点击可移除"],
     "n3wx1q": ["要恢复到这个版本吗？"],
+    "n3xHGo": ["Sign-in is unavailable"],
     "n5Vy3l": ["已在分支 ", ["branch"], " 上打开"],
     "n5n_vi": ["私有仓库"],
     "n6hXUm": [
@@ -3119,6 +3123,7 @@
     ],
     "rD-woT": ["告诉我们哪里出了问题，我们会收集日志。在你确认之前，不会有任何内容离开你的 Mac。"],
     "rDOuNw": ["导入模板失败"],
+    "rDo32M": ["Checking your company access..."],
     "rENNI6": ["共享链接无效。"],
     "rFL-yb": ["编辑一份副本"],
     "rFTdVq": ["在资源管理器中显示"],

@@ -63,7 +63,7 @@
  *   Present on every browser/desktop-renderer connect. The server does not
  *   read them today; a future spec validates them in `onAuthenticate`.
  */
-import { LINEAGE_EPOCH_KEY } from '@inkeep/open-knowledge-core';
+import { LINEAGE_EPOCH_KEY, parseCollaborationCredential } from '@inkeep/open-knowledge-core';
 import { z } from 'zod';
 
 export const HocuspocusAuthTokenSchema = z
@@ -214,10 +214,13 @@ export class HocuspocusAuthRejection extends Error {
 export function parseHocuspocusAuthToken(
   tokenStr: string | undefined | null,
 ): HocuspocusAuthToken | undefined {
-  if (typeof tokenStr !== 'string' || tokenStr.length === 0) return undefined;
+  const credential = parseCollaborationCredential(tokenStr);
+  if (credential.kind === 'invalid') return undefined;
+  const syncToken = credential.kind === 'envelope' ? credential.syncToken : credential.token;
+  if (syncToken === undefined) return undefined;
   let parsed: unknown;
   try {
-    parsed = JSON.parse(tokenStr);
+    parsed = JSON.parse(syncToken);
   } catch {
     return undefined;
   }

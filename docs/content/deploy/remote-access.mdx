@@ -5,7 +5,7 @@ description: Reach your knowledge base from your other devices.
 ---
 By default, only agents on the same machine as your knowledge base can reach it. Remote access puts that same endpoint behind an HTTPS tunnel (ngrok, Cloudflare Tunnel, Tailscale, or your own reverse proxy) so your other devices can connect to one shared knowledge base.
 
-OpenKnowledge does not authenticate remote callers. Once you pass `--remote`, anyone who can reach your tunnel URL has full read-write control, so restricting who reaches it is up to the tunnel. Put it on a private network like Tailscale, add edge auth like ngrok OAuth or Cloudflare Access, or just keep the URL to yourself. The server ignores tunneled traffic until you start it with `--remote`, so you never expose the base by accident.
+By default, OpenKnowledge does not authenticate remote callers. Once you pass `--remote`, anyone who can reach your tunnel URL has full read-write control, so restricting who reaches it is up to the tunnel. Put it on a private network like Tailscale, add edge auth like ngrok OAuth or Cloudflare Access, or just keep the URL to yourself. For a persistent multi-user deployment, configure [shared-server authentication](/docs/deploy/shared-server-authentication) so the browser API, collaboration WebSocket, and MCP endpoint enforce the same identity and capability policy. The server ignores tunneled traffic until you start it with `--remote`, so you never expose the base by accident.
 
 ## Set up the machine
 

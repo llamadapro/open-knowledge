@@ -1,3 +1,4 @@
+import { createCollaborationCredential } from '@inkeep/open-knowledge-core';
 import { describe, expect, it } from 'vitest';
 import {
   formatAuthRejectionWire,
@@ -6,7 +7,30 @@ import {
   type HocuspocusAuthRejectionReason,
   isHocuspocusAuthRejectionReason,
   parseAuthRejectionWire,
+  parseHocuspocusAuthToken,
 } from './auth-token-schema.ts';
+
+describe('parseHocuspocusAuthToken', () => {
+  it('reads legacy synchronization tokens and the sync portion of hosted envelopes', () => {
+    const syncToken = '{"expectedServerInstanceId":"server-one"}';
+    expect(parseHocuspocusAuthToken(syncToken)?.expectedServerInstanceId).toBe('server-one');
+    expect(
+      parseHocuspocusAuthToken(
+        createCollaborationCredential({ bearerToken: 'jwt.token', syncToken }),
+      )?.expectedServerInstanceId,
+    ).toBe('server-one');
+  });
+
+  it('returns undefined for bearer-only, absent, malformed, or schema-invalid claims', () => {
+    expect(
+      parseHocuspocusAuthToken(createCollaborationCredential({ bearerToken: 'jwt.token' })),
+    ).toBeUndefined();
+    expect(parseHocuspocusAuthToken(undefined)).toBeUndefined();
+    expect(parseHocuspocusAuthToken('not-json')).toBeUndefined();
+    expect(parseHocuspocusAuthToken('{"expectedBranch":42}')).toBeUndefined();
+    expect(parseHocuspocusAuthToken('ok-auth-v1:not-json')).toBeUndefined();
+  });
+});
 
 describe('HOCUSPOCUS_AUTH_REJECTION_REASONS', () => {
   it('contains the five wire reasons used by server-side throws', () => {

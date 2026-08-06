@@ -100,6 +100,12 @@ export {
   SecurityPrincipalKindSchema,
   SecurityPrincipalSchema,
 } from './security/authorization.ts';
+export {
+  type CollaborationCredentialEnvelope,
+  createCollaborationCredential,
+  type ParsedCollaborationCredential,
+  parseCollaborationCredential,
+} from './security/collaboration-credential.ts';
 
 // Markdown pipeline (new unified+remark)
 

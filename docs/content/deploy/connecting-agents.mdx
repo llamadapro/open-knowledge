@@ -3,7 +3,7 @@ title: Connecting agents
 icon: LuPlug
 description: Point every agent (Claude Code, Cursor, Claude Desktop, agent harnesses) at one shared knowledge base.
 ---
-Prerequisite: a running server with [remote access set up](/docs/deploy/remote-access). That page is also where access control lives (the tunnel decides who can reach the URL; the server itself does not authenticate remote callers). To connect someone else's machine, get them access to the tunnel first (e.g. a tailnet invite or an edge-auth allowlist entry), then send them here.
+Prerequisite: a running server with [remote access set up](/docs/deploy/remote-access). In default mode, the tunnel decides who can reach the URL. A persistent multi-user deployment can instead enable [shared-server authentication](/docs/deploy/shared-server-authentication) for browser and agent identities. To connect someone else's machine in default mode, get them access to the tunnel first (e.g. a tailnet invite or an edge-auth allowlist entry), then send them here.
 
 Your knowledge base is one URL: `https://<your-tunnel-url>/mcp`. Every client below connects to that same address, whether the server is your laptop, a Mac mini, or a VPS.
 
@@ -22,7 +22,7 @@ npx add-mcp https://<your-tunnel-url>/mcp --name ok-remote \
   --header "Authorization: Basic $(printf 'user:pass' | base64)"
 ```
 
-An **OAuth/SSO**-gated endpoint can't be used this way — a headless agent can't complete a browser login, so gate agent endpoints with Basic Auth, a [path-branched policy](/docs/deploy/remote-access#4-restrict-who-can-reach-it), or Tailscale instead.
+An agent cannot complete an interactive browser login. When OpenKnowledge's [shared-server authentication](/docs/deploy/shared-server-authentication) is enabled, give each agent its own Machine to Machine application and use a client or gateway that obtains and refreshes its audience-scoped bearer token.
 
 ## Claude Code
 

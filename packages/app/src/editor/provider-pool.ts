@@ -12,6 +12,7 @@ import { getSchema } from '@tiptap/core';
 import { yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
 import * as Y from 'yjs';
 import { buildAuthToken } from '../lib/auth-token';
+import { resolveHocuspocusAuthToken } from '../lib/hosted-auth';
 import { readNumericOverride } from '../lib/perf/env-override';
 import { mark } from '../lib/perf/mark';
 import { emitColdMountChild } from '../lib/perf/otel-spans';
@@ -1764,17 +1765,19 @@ export class ProviderPool {
     // entry just synced. Readable from the in-memory map even while the
     // instance id is unknown (the exact window the guard exists for).
     const lineageEpochRecordAtOpen = this.getRecordedLineageEpoch(docName);
-    const token = buildAuthToken(
-      this.tabIdentity,
-      expectedServerInstanceId,
-      this.getOrInitObservedBranch(),
-      // Claim the lineage epoch only when the live instance id is known —
-      // claims during the instance-unknown boot window would race the
-      // instance/branch axes' own recovery with spurious lineage
-      // rejections, and the record cannot be instance-validated yet.
-      expectedServerInstanceId !== null && expectedServerInstanceId.length > 0
-        ? lineageEpochRecordAtOpen
-        : null,
+    const token = resolveHocuspocusAuthToken(
+      buildAuthToken(
+        this.tabIdentity,
+        expectedServerInstanceId,
+        this.getOrInitObservedBranch(),
+        // Claim the lineage epoch only when the live instance id is known —
+        // claims during the instance-unknown boot window would race the
+        // instance/branch axes' own recovery with spurious lineage
+        // rejections, and the record cannot be instance-validated yet.
+        expectedServerInstanceId !== null && expectedServerInstanceId.length > 0
+          ? lineageEpochRecordAtOpen
+          : null,
+      ),
     );
     const provider = new HocuspocusProvider({
       // OTel trace context propagation for the WebSocket handshake. The

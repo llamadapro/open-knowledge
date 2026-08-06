@@ -1,0 +1,85 @@
+---
+title: Shared-server authentication
+icon: LuShieldCheck
+description: Protect a hosted OpenKnowledge server with Auth0 for people and agents.
+---
+
+OpenKnowledge can enforce one identity and capability model across its browser API, collaboration WebSocket, and MCP endpoint. Local desktop and single-user server behavior stays unchanged when the authentication variables are absent.
+
+## Auth0 applications and API
+
+Create these Auth0 resources:
+
+1. An API whose identifier becomes the OpenKnowledge audience.
+2. A Single Page Application for browser users. Enable Authorization Code with PKCE and add the deployed OpenKnowledge origin to its callback, logout, and web-origin allowlists.
+3. A Machine to Machine application for each agent or service identity that needs MCP access.
+
+Define the API permissions you intend to grant:
+
+| Permission | Allows |
+| --- | --- |
+| `knowledge.read` | Read documents, search, graph data, and MCP discovery tools |
+| `knowledge.propose` | Edit collaborative documents and use proposal/write tools |
+| `knowledge.review` | Review proposed knowledge changes |
+| `knowledge.publish` | Publish approved knowledge |
+| `knowledge.admin` | Administer the knowledge service |
+
+Unknown Auth0 permissions are ignored. A caller receives only the permissions present in its access token.
+
+## Server configuration
+
+Set the issuer and audience at runtime:
+
+```bash
+export OK_AUTH0_ISSUER="https://<your-auth0-domain>/"
+export OK_AUTH0_AUDIENCE="https://knowledge.example/api"
+```
+
+Client-credentials callers also require explicit, stable attribution. Register each allowed Auth0 client id in one JSON object:
+
+```bash
+export OK_AUTH0_MACHINE_PRINCIPALS_JSON='{
+  "AUTH0_CLIENT_ID": {
+    "id": "agent:company-assistant",
+    "kind": "agent",
+    "displayName": "Company assistant"
+  }
+}'
+```
+
+Use `kind: "service"` and an id beginning with `service:` for non-agent automation. An unregistered client-credentials token is rejected even when Auth0 signed it correctly.
+
+All hosted variables absent preserves local single-user mode. Partial configuration stops startup instead of serving a half-protected process.
+
+## Browser configuration
+
+The browser variables are Vite build-time values and must match the server API:
+
+```bash
+export VITE_OK_AUTH0_DOMAIN="<your-auth0-domain>"
+export VITE_OK_AUTH0_CLIENT_ID="<your-spa-client-id>"
+export VITE_OK_AUTH0_AUDIENCE="https://knowledge.example/api"
+```
+
+The browser uses Authorization Code with PKCE. Access tokens stay in memory; OpenKnowledge does not persist refresh tokens in browser storage. Configure an Auth0 custom domain for reliable silent session renewal in browsers that restrict third-party cookies.
+
+## Agent access
+
+Agents obtain an audience-scoped access token through their Machine to Machine application and send it as `Authorization: Bearer <token>` to `/mcp`. Use a client or gateway that refreshes short-lived access tokens; do not paste a long-lived credential into repository configuration.
+
+The machine application must be both:
+
+- granted the required API permissions in Auth0; and
+- present in `OK_AUTH0_MACHINE_PRINCIPALS_JSON`.
+
+The same authorization policy applies to every MCP session and tool call. Read access does not imply write access.
+
+## Operational checks
+
+Before exposing the service, verify:
+
+- an unauthenticated HTTP, WebSocket, and MCP request is rejected;
+- a reader can search and open documents but cannot mutate them;
+- a contributor can edit and use proposal tools;
+- an unknown Machine to Machine client is rejected;
+- authentication and authorization decisions reach the structured security audit log without raw tokens.

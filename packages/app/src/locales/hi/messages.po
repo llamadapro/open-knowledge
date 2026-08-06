@@ -2091,6 +2091,10 @@ msgstr "साइन-इन स्थिति जाँची जा रही 
 msgid "Checking source"
 msgstr "स्रोत जाँचा जा रहा है"
 
+#: src/components/HostedAuthBoundary.tsx
+msgid "Checking your company access..."
+msgstr ""
+
 #: src/components/settings/AccountSection.tsx
 msgid "Checking your GitHub connection"
 msgstr "आपका GitHub कनेक्शन जाँचा जा रहा है"
@@ -8937,12 +8941,17 @@ msgstr "प्रासंगिकता"
 
 #: src/components/AppMenubar.tsx
 #: src/components/EditorActivityPool.tsx
+#: src/components/HostedAuthBoundary.tsx
 #: src/components/settings/SettingsDialogErrorBoundary.tsx
 #: src/components/TerminalGate.tsx
 #: src/lib/locale-load-failure-notice.ts
 #: src/lib/native-menu-catalog.ts
 msgid "Reload"
 msgstr "फिर से लोड करें"
+
+#: src/components/HostedAuthBoundary.tsx
+msgid "Reload the page or contact your administrator if the problem continues."
+msgstr ""
 
 #: src/components/acp/ThreadView.tsx
 msgid "Remember this for future agents"
@@ -10343,6 +10352,7 @@ msgstr "कोड के मुख्य भाग के ऊपर दिखत
 msgid "Sifting…"
 msgstr "छाना जा रहा है…"
 
+#: src/components/HostedAuthBoundary.tsx
 #: src/components/settings/AccountSection.tsx
 #: src/components/settings/SyncSection.tsx
 #: src/components/ShareBranchSwitchDialog.tsx
@@ -10358,6 +10368,10 @@ msgstr "पहले {agentName} में साइन इन करें"
 msgid "Sign in to {agentName} to continue."
 msgstr "जारी रखने के लिए {agentName} में साइन इन करें।"
 
+#: src/components/HostedAuthBoundary.tsx
+msgid "Sign in to OpenKnowledge"
+msgstr ""
+
 #. placeholder {0}: method.name
 #: src/components/acp/ThreadView.tsx
 msgid "Sign in with {0}"
@@ -10367,6 +10381,10 @@ msgstr "{0} से साइन इन करें"
 #: src/components/acp/ThreadView.tsx
 msgid "Sign-in failed: {0}"
 msgstr "साइन इन विफल: {0}"
+
+#: src/components/HostedAuthBoundary.tsx
+msgid "Sign-in is unavailable"
+msgstr ""
 
 #: src/components/AuthModal.tsx
 #: src/lib/transports/auth-transport.ts
@@ -12321,6 +12339,10 @@ msgstr "केवल छोटे अक्षर, अंक और <0>-</0> उ
 #: src/components/NewSkillDialog.tsx
 msgid "Use lowercase letters, numbers, and hyphens only"
 msgstr "केवल छोटे अक्षर, अंक और हाइफ़न उपयोग करें"
+
+#: src/components/HostedAuthBoundary.tsx
+msgid "Use your company account to access this knowledge base."
+msgstr ""
 
 #: src/components/settings/ScopeBadge.tsx
 #: src/components/settings/SettingsDialogShell.tsx

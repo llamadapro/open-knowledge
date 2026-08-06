@@ -378,6 +378,7 @@
     "5_j-DA": ["Kill Terminal"],
     "5aahsI": ["nothing (", ["0"], " is not a valid pattern)"],
     "5e1Dri": ["The menu label agents pick this template by (required)."],
+    "5fsMBo": ["Use your company account to access this knowledge base."],
     "5gr_ev": [
       "Becomes the document's content when someone creates a doc from this template. Type <0>",
       ["dateToken"],
@@ -1233,6 +1234,7 @@
     "ItxGi3": ["Attachments must total under 3 MB."],
     "Ix0K8o": ["Hide external URL nodes"],
     "IxHMdF": ["Couldn't delete that comment."],
+    "Ixee2H": ["Reload the page or contact your administrator if the problem continues."],
     "IxyZXD": ["Screenshot"],
     "J2Mv98": ["Name (e.g. ", ["login"], ")"],
     "J2_JuX": ["nothing (", ["0"], " cannot match a doc)"],
@@ -2317,6 +2319,7 @@
       ["currentLabel"],
       "</1>."
     ],
+    "_9WDYq": ["Sign in to OpenKnowledge"],
     "_FLBbi": [["sizeText"], " · secrets redacted · crash dump not redacted"],
     "_GRWOJ": ["Change the embeddings provider?"],
     "_HgF9q": ["Sort by"],
@@ -3253,6 +3256,7 @@
     "n2lRue": ["Commit or stash changes to switch:"],
     "n3T3EE": ["Installed in ", ["label"], " — click to remove"],
     "n3wx1q": ["Restore to this version?"],
+    "n3xHGo": ["Sign-in is unavailable"],
     "n5Vy3l": ["Opened on branch ", ["branch"]],
     "n5n_vi": ["Private repository"],
     "n6hXUm": [
@@ -3519,6 +3523,7 @@
       "Tell us what went wrong and we'll gather the logs. Nothing leaves your Mac until you've reviewed it."
     ],
     "rDOuNw": ["Failed to import template"],
+    "rDo32M": ["Checking your company access..."],
     "rENNI6": ["Invalid share URL."],
     "rFL-yb": ["Edit a copy"],
     "rFTdVq": ["Show in Explorer"],

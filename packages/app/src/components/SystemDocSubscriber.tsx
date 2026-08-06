@@ -12,6 +12,7 @@ import {
   emitDocumentsChanged,
   subscribeToDocumentsChanged,
 } from '@/lib/documents-events';
+import { resolveHocuspocusAuthToken } from '@/lib/hosted-auth';
 import { createSyncedReconnectGate } from '@/lib/server-info-refresh';
 
 export function SystemDocSubscriber() {
@@ -50,18 +51,16 @@ export function SystemDocSubscriber() {
   useEffect(() => {
     if (collabUrl === null) return;
     const doc = new Y.Doc();
-    // STOP: this provider must stay token-less. It is the only channel by
-    // which a live client learns that the server rotated its instance id,
-    // and it can only be that channel because it carries no epoch claim for
-    // the server to reject. Giving it a claim-bearing token makes it fail
-    // authentication after every restart; it has no `authenticationFailed`
-    // handler and this effect does not re-run, so `refreshServerInfo` would
-    // never fire and the pool would never learn the new epoch — turning an
-    // intermittent single-doc stall into a deterministic total one.
+    // Local mode stays token-less so this channel can observe server-epoch
+    // rotations without carrying a stale epoch claim. Hosted mode supplies
+    // only the OAuth token: it authenticates the connection but still carries
+    // no OpenKnowledge epoch claim, preserving the same restart role.
+    const authToken = resolveHocuspocusAuthToken();
     const provider = new HocuspocusProvider({
       url: collabUrl,
       name: SYSTEM_DOC_NAME,
       document: doc,
+      ...(authToken ? { token: authToken } : {}),
       onStateless: ({ payload }: { payload: string }) => {
         // CC1 stateless channel multiplexes payload-bearing shapes via
         // the shared dispatcher in `@/lib/cc1` — adding a new channel

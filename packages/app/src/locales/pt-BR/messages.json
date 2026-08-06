@@ -445,6 +445,7 @@
     "5_j-DA": ["Encerrar o terminal"],
     "5aahsI": ["nada (", ["0"], " não é um padrão válido)"],
     "5e1Dri": ["O rótulo de menu pelo qual os agentes escolhem este modelo (obrigatório)."],
+    "5fsMBo": ["Use your company account to access this knowledge base."],
     "5gr_ev": [
       "Vira o conteúdo do documento quando alguém cria um documento a partir deste modelo. Digite <0>",
       ["dateToken"],
@@ -1424,6 +1425,7 @@
     "ItxGi3": ["Os anexos devem somar menos de 3 MB."],
     "Ix0K8o": ["Ocultar os nós de URL externa"],
     "IxHMdF": ["Não deu para excluir esse comentário."],
+    "Ixee2H": ["Reload the page or contact your administrator if the problem continues."],
     "IxyZXD": ["Captura de tela"],
     "J2Mv98": ["Nome (ex.: ", ["login"], ")"],
     "J2_JuX": ["nada (", ["0"], " não pode corresponder a um documento)"],
@@ -2611,6 +2613,7 @@
       ["currentLabel"],
       "</1>."
     ],
+    "_9WDYq": ["Sign in to OpenKnowledge"],
     "_FLBbi": [["sizeText"], " · segredos ocultados · despejo de falha sem ocultação"],
     "_GRWOJ": ["Trocar o provedor de embeddings?"],
     "_HgF9q": ["Ordenar por"],
@@ -3672,6 +3675,7 @@
     "n2lRue": ["Faça commit ou stash das alterações para trocar:"],
     "n3T3EE": ["Instalado em ", ["label"], " — clique para remover"],
     "n3wx1q": ["Restaurar até esta versão?"],
+    "n3xHGo": ["Sign-in is unavailable"],
     "n5Vy3l": ["Aberto no ramo ", ["branch"]],
     "n5n_vi": ["Repositório privado"],
     "n6hXUm": [
@@ -3957,6 +3961,7 @@
       "Conte o que deu errado e a gente reúne os logs. Nada sai do seu Mac antes de você revisar."
     ],
     "rDOuNw": ["Falha ao importar o modelo"],
+    "rDo32M": ["Checking your company access..."],
     "rENNI6": ["URL de compartilhamento inválida."],
     "rFL-yb": ["Editar uma cópia"],
     "rFTdVq": ["Mostrar no Explorador"],

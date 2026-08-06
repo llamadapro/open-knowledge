@@ -2,6 +2,12 @@
 /// <reference types="bun-types" />
 
 interface ImportMetaEnv {
+  /** Auth0 custom domain used by the hosted shared-server build. */
+  readonly VITE_OK_AUTH0_DOMAIN?: string;
+  /** Auth0 SPA application client id used by the hosted shared-server build. */
+  readonly VITE_OK_AUTH0_CLIENT_ID?: string;
+  /** Auth0 API audience shared with the OpenKnowledge server. */
+  readonly VITE_OK_AUTH0_AUDIENCE?: string;
   /**
    * PROD-build override for `installColdMountInstrumentation()`. Set to the
    * literal string `'1'` to install the prototype monkey-patches and per-

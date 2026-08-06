@@ -11,11 +11,15 @@
 import { randomUUID } from 'node:crypto';
 import { setTimeout as wait } from 'node:timers/promises';
 import { Compartment } from '@codemirror/state';
-import { PROTOCOL_VERSION } from '@inkeep/open-knowledge-core';
+import { PROTOCOL_VERSION, parseCollaborationCredential } from '@inkeep/open-knowledge-core';
 import { parseHocuspocusAuthToken } from '@inkeep/open-knowledge-server';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import * as Y from 'yjs';
 import { buildAuthToken } from '../lib/auth-token';
+import {
+  configureHostedAuthentication,
+  resetHostedAuthenticationForTests,
+} from '../lib/hosted-auth';
 import { __resetCardinalityWarnings, getCollector } from '../lib/perf/collector';
 import type { ClientPersistenceProvider } from './client-persistence';
 import { ProviderPool } from './provider-pool';
@@ -66,6 +70,7 @@ let pool: ProviderPool;
 
 afterEach(() => {
   pool?.dispose();
+  resetHostedAuthenticationForTests();
 });
 
 describe('ProviderPool basics', () => {
@@ -942,6 +947,49 @@ describe('buildAuthToken (MECHANISM-ONLY — CRDT restart recovery + client vers
       parseHocuspocusAuthToken(buildAuthToken(null, 'sid-x', null, ''))?.expectedDocLineageEpoch,
     ).toBeUndefined();
   });
+});
+
+test('open() carries hosted access and local recovery claims in one credential', async () => {
+  const getTokenSilently = vi.fn(async () => 'hosted-access-token');
+  const session = configureHostedAuthentication(
+    {
+      VITE_OK_AUTH0_DOMAIN: 'identity.example',
+      VITE_OK_AUTH0_CLIENT_ID: 'browser-client',
+      VITE_OK_AUTH0_AUDIENCE: 'https://knowledge.example/api',
+    },
+    {
+      location: {
+        origin: 'https://knowledge.example',
+        pathname: '/',
+        search: '',
+        hash: '',
+      },
+      replaceHistory: vi.fn(),
+    },
+    (async () => ({
+      getTokenSilently,
+      getUser: async () => ({ sub: 'auth0|employee' }),
+      handleRedirectCallback: async () => ({ appState: {} }),
+      isAuthenticated: async () => true,
+      loginWithRedirect: async () => undefined,
+      logout: async () => undefined,
+    })) as never,
+  );
+  await session?.initialize();
+  pool = new ProviderPool(3, DUMMY_WS);
+
+  const entry = pool.open(uniqueDocName('hosted-token'));
+  const token = entry?.provider.configuration.token;
+
+  expect(token).toBeTypeOf('function');
+  const credential = parseCollaborationCredential(await (token as () => Promise<string>)());
+  expect(credential.kind).toBe('envelope');
+  if (credential.kind !== 'envelope') throw new Error('expected hosted credential envelope');
+  expect(credential.bearerToken).toBe('hosted-access-token');
+  expect(parseHocuspocusAuthToken(credential.syncToken)?.clientProtocolVersion).toBeTypeOf(
+    'number',
+  );
+  expect(getTokenSilently).toHaveBeenCalled();
 });
 
 describe('ProviderPool server-instance-ID claim (US-001)', () => {

@@ -2095,6 +2095,10 @@ msgstr "正在檢查登入狀態"
 msgid "Checking source"
 msgstr "正在檢查來源"
 
+#: src/components/HostedAuthBoundary.tsx
+msgid "Checking your company access..."
+msgstr ""
+
 #: src/components/settings/AccountSection.tsx
 msgid "Checking your GitHub connection"
 msgstr "正在檢查你的 GitHub 連線"
@@ -8941,12 +8945,17 @@ msgstr "相關度"
 
 #: src/components/AppMenubar.tsx
 #: src/components/EditorActivityPool.tsx
+#: src/components/HostedAuthBoundary.tsx
 #: src/components/settings/SettingsDialogErrorBoundary.tsx
 #: src/components/TerminalGate.tsx
 #: src/lib/locale-load-failure-notice.ts
 #: src/lib/native-menu-catalog.ts
 msgid "Reload"
 msgstr "重新載入"
+
+#: src/components/HostedAuthBoundary.tsx
+msgid "Reload the page or contact your administrator if the problem continues."
+msgstr ""
 
 #: src/components/acp/ThreadView.tsx
 msgid "Remember this for future agents"
@@ -10347,6 +10356,7 @@ msgstr "顯示在程式碼內文上方。在 markdown 中以 `title=\"...\"` 的
 msgid "Sifting…"
 msgstr "篩查中…"
 
+#: src/components/HostedAuthBoundary.tsx
 #: src/components/settings/AccountSection.tsx
 #: src/components/settings/SyncSection.tsx
 #: src/components/ShareBranchSwitchDialog.tsx
@@ -10362,6 +10372,10 @@ msgstr "請先登入 {agentName}"
 msgid "Sign in to {agentName} to continue."
 msgstr "請登入 {agentName} 以繼續。"
 
+#: src/components/HostedAuthBoundary.tsx
+msgid "Sign in to OpenKnowledge"
+msgstr ""
+
 #. placeholder {0}: method.name
 #: src/components/acp/ThreadView.tsx
 msgid "Sign in with {0}"
@@ -10371,6 +10385,10 @@ msgstr "使用 {0} 登入"
 #: src/components/acp/ThreadView.tsx
 msgid "Sign-in failed: {0}"
 msgstr "登入失敗：{0}"
+
+#: src/components/HostedAuthBoundary.tsx
+msgid "Sign-in is unavailable"
+msgstr ""
 
 #: src/components/AuthModal.tsx
 #: src/lib/transports/auth-transport.ts
@@ -12325,6 +12343,10 @@ msgstr "只能用小寫字母、數字和 <0>-</0>。"
 #: src/components/NewSkillDialog.tsx
 msgid "Use lowercase letters, numbers, and hyphens only"
 msgstr "只能用小寫字母、數字和連字號"
+
+#: src/components/HostedAuthBoundary.tsx
+msgid "Use your company account to access this knowledge base."
+msgstr ""
 
 #: src/components/settings/ScopeBadge.tsx
 #: src/components/settings/SettingsDialogShell.tsx

@@ -2095,6 +2095,10 @@ msgstr "Vérification de l'état de connexion"
 msgid "Checking source"
 msgstr "Vérification de la source"
 
+#: src/components/HostedAuthBoundary.tsx
+msgid "Checking your company access..."
+msgstr ""
+
 #: src/components/settings/AccountSection.tsx
 msgid "Checking your GitHub connection"
 msgstr "Vérification de votre connexion GitHub"
@@ -8941,12 +8945,17 @@ msgstr "Pertinence"
 
 #: src/components/AppMenubar.tsx
 #: src/components/EditorActivityPool.tsx
+#: src/components/HostedAuthBoundary.tsx
 #: src/components/settings/SettingsDialogErrorBoundary.tsx
 #: src/components/TerminalGate.tsx
 #: src/lib/locale-load-failure-notice.ts
 #: src/lib/native-menu-catalog.ts
 msgid "Reload"
 msgstr "Recharger"
+
+#: src/components/HostedAuthBoundary.tsx
+msgid "Reload the page or contact your administrator if the problem continues."
+msgstr ""
 
 #: src/components/acp/ThreadView.tsx
 msgid "Remember this for future agents"
@@ -10347,6 +10356,7 @@ msgstr "S'affiche au-dessus du corps du code. Conservé sous la forme `title=\".
 msgid "Sifting…"
 msgstr "Tamisage…"
 
+#: src/components/HostedAuthBoundary.tsx
 #: src/components/settings/AccountSection.tsx
 #: src/components/settings/SyncSection.tsx
 #: src/components/ShareBranchSwitchDialog.tsx
@@ -10362,6 +10372,10 @@ msgstr "Connectez-vous d'abord à {agentName}"
 msgid "Sign in to {agentName} to continue."
 msgstr "Connectez-vous à {agentName} pour continuer."
 
+#: src/components/HostedAuthBoundary.tsx
+msgid "Sign in to OpenKnowledge"
+msgstr ""
+
 #. placeholder {0}: method.name
 #: src/components/acp/ThreadView.tsx
 msgid "Sign in with {0}"
@@ -10371,6 +10385,10 @@ msgstr "Se connecter avec {0}"
 #: src/components/acp/ThreadView.tsx
 msgid "Sign-in failed: {0}"
 msgstr "Échec de la connexion : {0}"
+
+#: src/components/HostedAuthBoundary.tsx
+msgid "Sign-in is unavailable"
+msgstr ""
 
 #: src/components/AuthModal.tsx
 #: src/lib/transports/auth-transport.ts
@@ -12325,6 +12343,10 @@ msgstr "Utilisez uniquement des lettres minuscules, des chiffres et <0>-</0>."
 #: src/components/NewSkillDialog.tsx
 msgid "Use lowercase letters, numbers, and hyphens only"
 msgstr "Utilisez uniquement des lettres minuscules, des chiffres et des traits d'union"
+
+#: src/components/HostedAuthBoundary.tsx
+msgid "Use your company account to access this knowledge base."
+msgstr ""
 
 #: src/components/settings/ScopeBadge.tsx
 #: src/components/settings/SettingsDialogShell.tsx

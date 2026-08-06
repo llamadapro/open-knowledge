@@ -445,6 +445,7 @@
     "5_j-DA": ["Matar la terminal"],
     "5aahsI": ["nada (", ["0"], " no es un patrón válido)"],
     "5e1Dri": ["La etiqueta de menú con la que los agentes eligen esta plantilla (obligatoria)."],
+    "5fsMBo": ["Use your company account to access this knowledge base."],
     "5gr_ev": [
       "Se convierte en el contenido del documento cuando alguien crea uno a partir de esta plantilla. Escribe <0>",
       ["dateToken"],
@@ -1442,6 +1443,7 @@
     "ItxGi3": ["Los adjuntos deben sumar menos de 3 MB."],
     "Ix0K8o": ["Ocultar los nodos de URL externas"],
     "IxHMdF": ["No se pudo eliminar ese comentario."],
+    "Ixee2H": ["Reload the page or contact your administrator if the problem continues."],
     "IxyZXD": ["Captura de pantalla"],
     "J2Mv98": ["Nombre (p. ej. ", ["login"], ")"],
     "J2_JuX": ["nada (", ["0"], " no puede coincidir con un documento)"],
@@ -2666,6 +2668,7 @@
       ["currentLabel"],
       "</1>."
     ],
+    "_9WDYq": ["Sign in to OpenKnowledge"],
     "_FLBbi": [["sizeText"], " · secretos ocultos · volcado de fallo sin ocultar"],
     "_GRWOJ": ["¿Cambiar el proveedor de embeddings?"],
     "_HgF9q": ["Ordenar por"],
@@ -3754,6 +3757,7 @@
     "n2lRue": ["Haz commit o stash de tus cambios para cambiar:"],
     "n3T3EE": ["Instalado en ", ["label"], ": haz clic para quitarlo"],
     "n3wx1q": ["¿Restaurar hasta esta versión?"],
+    "n3xHGo": ["Sign-in is unavailable"],
     "n5Vy3l": ["Abierto en la rama ", ["branch"]],
     "n5n_vi": ["Repositorio privado"],
     "n6hXUm": [
@@ -4051,6 +4055,7 @@
       "Cuéntanos qué falló y recopilaremos los registros. Nada sale de tu Mac hasta que lo hayas revisado."
     ],
     "rDOuNw": ["No se pudo importar la plantilla"],
+    "rDo32M": ["Checking your company access..."],
     "rENNI6": ["URL para compartir no válida."],
     "rFL-yb": ["Editar una copia"],
     "rFTdVq": ["Mostrar en el Explorador"],

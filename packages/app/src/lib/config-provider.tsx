@@ -57,6 +57,7 @@ import {
   resolveModePreference,
 } from './color-themes';
 import { ConfigContext, type ConfigContextValue } from './config-context';
+import { resolveHocuspocusAuthToken } from './hosted-auth';
 import { useServerInstanceId } from './server-instance-store';
 import { useApplyConfigColorTheme } from './use-apply-config-color-theme';
 import { useApplyConfigLanguage } from './use-apply-config-language';
@@ -113,7 +114,7 @@ function makeBinding(
     // union-merge that otherwise duplicates config content. Recovery
     // is the epoch-keyed rebuild in `ConfigProvider`'s effect, not a client
     // `onAuthenticationFailed` (these docs have no IDB to clear).
-    token: buildAuthToken(null, serverInstanceId, null),
+    token: resolveHocuspocusAuthToken(buildAuthToken(null, serverInstanceId, null)),
     onDisconnect: ({ event }) => logProviderEvent('config-provider', docName, 'disconnect', event),
     onClose: ({ event }) => logProviderEvent('config-provider', docName, 'close', event),
   });
@@ -139,7 +140,7 @@ function makeOkignoreBinding(collabUrl: string, serverInstanceId: string | null)
     name: CONFIG_DOC_NAME_OKIGNORE,
     document: ydoc,
     // See makeBinding: epoch claim → pre-sync reject on respawn → no union-merge.
-    token: buildAuthToken(null, serverInstanceId, null),
+    token: resolveHocuspocusAuthToken(buildAuthToken(null, serverInstanceId, null)),
     onDisconnect: ({ event }) =>
       logProviderEvent('okignore-provider', CONFIG_DOC_NAME_OKIGNORE, 'disconnect', event),
     onClose: ({ event }) =>

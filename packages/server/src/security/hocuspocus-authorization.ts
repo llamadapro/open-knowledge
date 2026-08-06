@@ -1,5 +1,9 @@
 import type { Extension } from '@hocuspocus/server';
-import { hasKnowledgeCapability, type SecurityPrincipal } from '@inkeep/open-knowledge-core';
+import {
+  hasKnowledgeCapability,
+  parseCollaborationCredential,
+  type SecurityPrincipal,
+} from '@inkeep/open-knowledge-core';
 import { AuthenticationRequiredError, type AuthorizationService } from './authorization.ts';
 
 export interface SecurityWebSocketContext {
@@ -21,7 +25,16 @@ export function createHocuspocusAuthorizationExtension(
         transport: 'websocket' as const,
         resource: `document:${documentName}`,
       };
-      const principal = await authorization.authenticateToken(token, authContext);
+      const credential = parseCollaborationCredential(token);
+      if (credential.kind === 'invalid') {
+        throw new AuthenticationRequiredError(
+          credential.reason === 'too-large' ? 'too-large' : 'malformed',
+        );
+      }
+      const principal = await authorization.authenticateToken(
+        credential.kind === 'envelope' ? credential.bearerToken : credential.token,
+        authContext,
+      );
       await authorization.requireCapability(principal, 'knowledge.read', authContext);
       context.securityPrincipal = principal;
       context.principalId = principal.id;

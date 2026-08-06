@@ -66,6 +66,7 @@
     }
   ],
   "dependencies": {
+    "@auth0/auth0-spa-js": "^2.24.1",
     "@codemirror/autocomplete": "^6.20.1",
     "@codemirror/commands": "^6.10.3",
     "@codemirror/lang-css": "^6.3.1",

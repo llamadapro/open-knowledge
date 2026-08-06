@@ -379,6 +379,7 @@
     "5_j-DA": ["Matikan Terminal"],
     "5aahsI": ["tidak apa pun (", ["0"], " bukan pola yang valid)"],
     "5e1Dri": ["Label menu yang dipakai agen untuk memilih templat ini (wajib)."],
+    "5fsMBo": ["Use your company account to access this knowledge base."],
     "5gr_ev": [
       "Menjadi isi dokumen ketika seseorang membuat dokumen dari templat ini. Ketik <0>",
       ["dateToken"],
@@ -1230,6 +1231,7 @@
     "ItxGi3": ["Total lampiran harus di bawah 3 MB."],
     "Ix0K8o": ["Sembunyikan simpul URL eksternal"],
     "IxHMdF": ["Komentar itu tidak bisa dihapus."],
+    "Ixee2H": ["Reload the page or contact your administrator if the problem continues."],
     "IxyZXD": ["Tangkapan layar"],
     "J2Mv98": ["Nama (mis. ", ["login"], ")"],
     "J2_JuX": ["tidak apa pun (", ["0"], " tidak bisa cocok dengan sebuah dokumen)"],
@@ -2325,6 +2327,7 @@
       ["currentLabel"],
       "</1>."
     ],
+    "_9WDYq": ["Sign in to OpenKnowledge"],
     "_FLBbi": [["sizeText"], " · rahasia disunting · crash dump tidak disunting"],
     "_GRWOJ": ["Ganti penyedia embedding?"],
     "_HgF9q": ["Urutkan menurut"],
@@ -3294,6 +3297,7 @@
     "n2lRue": ["Lakukan commit atau stash pada perubahan untuk berpindah:"],
     "n3T3EE": ["Terpasang di ", ["label"], " — klik untuk menghapus"],
     "n3wx1q": ["Pulihkan hingga versi ini?"],
+    "n3xHGo": ["Sign-in is unavailable"],
     "n5Vy3l": ["Dibuka di cabang ", ["branch"]],
     "n5n_vi": ["Repositori pribadi"],
     "n6hXUm": [
@@ -3557,6 +3561,7 @@
       "Ceritakan apa yang salah dan kami akan mengumpulkan lognya. Tidak ada yang keluar dari Mac Anda sebelum Anda meninjaunya."
     ],
     "rDOuNw": ["Gagal mengimpor templat"],
+    "rDo32M": ["Checking your company access..."],
     "rENNI6": ["URL berbagi tidak valid."],
     "rFL-yb": ["Sunting salinan"],
     "rFTdVq": ["Tampilkan di Explorer"],

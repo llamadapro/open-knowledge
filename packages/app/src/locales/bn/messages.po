@@ -2091,6 +2091,10 @@ msgstr "সাইন-ইন অবস্থা পরীক্ষা করা �
 msgid "Checking source"
 msgstr "উৎস পরীক্ষা করা হচ্ছে"
 
+#: src/components/HostedAuthBoundary.tsx
+msgid "Checking your company access..."
+msgstr ""
+
 #: src/components/settings/AccountSection.tsx
 msgid "Checking your GitHub connection"
 msgstr "আপনার GitHub সংযোগ পরীক্ষা করা হচ্ছে"
@@ -8937,12 +8941,17 @@ msgstr "প্রাসঙ্গিকতা"
 
 #: src/components/AppMenubar.tsx
 #: src/components/EditorActivityPool.tsx
+#: src/components/HostedAuthBoundary.tsx
 #: src/components/settings/SettingsDialogErrorBoundary.tsx
 #: src/components/TerminalGate.tsx
 #: src/lib/locale-load-failure-notice.ts
 #: src/lib/native-menu-catalog.ts
 msgid "Reload"
 msgstr "আবার লোড করুন"
+
+#: src/components/HostedAuthBoundary.tsx
+msgid "Reload the page or contact your administrator if the problem continues."
+msgstr ""
 
 #: src/components/acp/ThreadView.tsx
 msgid "Remember this for future agents"
@@ -10343,6 +10352,7 @@ msgstr "কোডের মূল অংশের উপরে দেখা য�
 msgid "Sifting…"
 msgstr "ছেঁকে দেখা হচ্ছে…"
 
+#: src/components/HostedAuthBoundary.tsx
 #: src/components/settings/AccountSection.tsx
 #: src/components/settings/SyncSection.tsx
 #: src/components/ShareBranchSwitchDialog.tsx
@@ -10358,6 +10368,10 @@ msgstr "আগে {agentName}-এ সাইন ইন করুন"
 msgid "Sign in to {agentName} to continue."
 msgstr "চালিয়ে যেতে {agentName}-এ সাইন ইন করুন।"
 
+#: src/components/HostedAuthBoundary.tsx
+msgid "Sign in to OpenKnowledge"
+msgstr ""
+
 #. placeholder {0}: method.name
 #: src/components/acp/ThreadView.tsx
 msgid "Sign in with {0}"
@@ -10367,6 +10381,10 @@ msgstr "{0} দিয়ে সাইন ইন করুন"
 #: src/components/acp/ThreadView.tsx
 msgid "Sign-in failed: {0}"
 msgstr "সাইন ইন ব্যর্থ: {0}"
+
+#: src/components/HostedAuthBoundary.tsx
+msgid "Sign-in is unavailable"
+msgstr ""
 
 #: src/components/AuthModal.tsx
 #: src/lib/transports/auth-transport.ts
@@ -12321,6 +12339,10 @@ msgstr "কেবল ছোট হাতের অক্ষর, অঙ্ক ও
 #: src/components/NewSkillDialog.tsx
 msgid "Use lowercase letters, numbers, and hyphens only"
 msgstr "কেবল ছোট হাতের অক্ষর, সংখ্যা ও হাইফেন ব্যবহার করুন"
+
+#: src/components/HostedAuthBoundary.tsx
+msgid "Use your company account to access this knowledge base."
+msgstr ""
 
 #: src/components/settings/ScopeBadge.tsx
 #: src/components/settings/SettingsDialogShell.tsx

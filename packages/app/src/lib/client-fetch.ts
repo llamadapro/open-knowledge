@@ -36,6 +36,8 @@ import { browserClientVersionHeaders } from '@/lib/client-version';
 interface ClientFetchConfig {
   /** Electron utility-process API origin. Absent (web / CLI) → no URL rewrite. */
   apiOrigin?: string;
+  /** Hosted-mode OAuth access token. Omitted for local web and desktop mode. */
+  getAccessToken?: () => Promise<string>;
 }
 
 const FETCH_WRAPPER_MARKER = Symbol.for('ok.client.fetchWrapper');
@@ -57,15 +59,19 @@ export function installClientFetchWrapper(config: ClientFetchConfig = {}): void 
   // Version metadata is constant for the bundle's lifetime — resolve once.
   const versionHeaders = browserClientVersionHeaders();
 
-  const wrapped = ((input: RequestInfo | URL, init?: RequestInit) => {
+  const wrapped = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const target = resolveApiTarget(input, apiOrigin);
     if (!target.isApi) return origFetch(input, init);
 
+    const token = await config.getAccessToken?.();
+    const authenticationHeaders: Record<string, string> = token
+      ? { Authorization: `Bearer ${token}` }
+      : {};
     if (input instanceof Request) {
-      const headers = mergeHeaders(input.headers, versionHeaders);
+      const headers = mergeHeaders(input.headers, { ...versionHeaders, ...authenticationHeaders });
       return origFetch(new Request(target.url, input), { headers });
     }
-    const headers = mergeHeaders(init?.headers, versionHeaders);
+    const headers = mergeHeaders(init?.headers, { ...versionHeaders, ...authenticationHeaders });
     return origFetch(target.url, { ...init, headers });
   }) as typeof window.fetch & { [FETCH_WRAPPER_MARKER]?: true };
 
