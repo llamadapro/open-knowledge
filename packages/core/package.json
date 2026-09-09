@@ -60,7 +60,7 @@
     "@handlewithcare/remark-prosemirror": "0.1.5",
     "@opentelemetry/api": "^1.9.0",
     "@orama/orama": "^3.1.18",
-    "@tiptap/core": "^3.22.3",
+    "@tiptap/core": "^3.30.5",
     "@tiptap/extension-blockquote": "^3.22.3",
     "@tiptap/extension-bold": "^3.22.3",
     "@tiptap/extension-code": "3.22.3",
